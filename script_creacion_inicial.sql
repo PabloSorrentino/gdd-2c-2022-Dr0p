@@ -45,6 +45,17 @@ CREATE TABLE [Dr0p].[Categorias] (
 	detalle NVARCHAR(255)
 )
 
+--Productos
+CREATE TABLE [Dr0p].[Productos](
+    codigo NVARCHAR(50) PRIMARY KEY,
+    nombre NVARCHAR(50),
+    descripcion NVARCHAR(50),
+    material NVARCHAR(50),
+    marca  NVARCHAR(255),
+    categoria DECIMAL(18,0)
+)
+
+
 --MAPEO DE FKS --
 
 --proveedores-localidades
@@ -55,6 +66,9 @@ ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].[Localidades](id)
 ALTER TABLE [Dr0p].[Proveedores]
 ADD FOREIGN KEY (provincia) REFERENCES [Dr0p].[Provincias](nombre)
 
+--productos-categorias
+ALTER TABLE [Dr0p].[Productos]
+ADD FOREIGN KEY (categoria) REFERENCES [Dr0p].Categorias(id)
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -101,3 +115,23 @@ INSERT INTO [Dr0p].[Categorias] (
 )
 SELECT DISTINCT PRODUCTO_CATEGORIA FROM gd_esquema.Maestra WHERE PRODUCTO_CATEGORIA IS NOT NULL ORDER BY 1 ASC
 GO 
+
+--Productos
+INSERT INTO [Dr0p].[Productos](
+	codigo,
+    nombre,
+    descripcion,
+    material,
+    marca,
+    categoria
+)
+SELECT DISTINCT 
+m.PRODUCTO_NOMBRE, 
+M.PRODUCTO_CODIGO,
+m.PRODUCTO_DESCRIPCION,
+m.PRODUCTO_MATERIAL,
+M.PRODUCTO_MARCA,
+(select C.id FROM [Dr0p].[Categorias] C WHERE C.detalle = M.PRODUCTO_CATEGORIA)
+FROM gd_esquema.Maestra M 
+where M.PRODUCTO_NOMBRE is not null
+order by PRODUCTO_NOMBRE ASC
