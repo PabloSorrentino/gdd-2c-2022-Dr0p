@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 USE [GD2C2022]
 GO
 
@@ -74,6 +76,42 @@ CREATE TABLE [Dr0p].[Variantes](
 	producto_codigo NVARCHAR(50)
 )
 
+-- Envios Ventas
+CREATE TABLE [Dr0p].[Envios_Ventas](
+   id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    medio_envio NVARCHAR(255),
+    medio_envio_precio DECIMAL(18,2)
+)
+
+
+-- Canales de venta
+CREATE TABLE [Dr0p].[Canales_de_venta](
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion NVARCHAR(255),
+    costo DECIMAL(18,2)
+)
+
+-- Clientes
+CREATE TABLE [Dr0p].[Clientes](
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    dni DECIMAL(18,0),
+    apellido NVARCHAR(255),
+    nombre NVARCHAR(255),
+    telefono DECIMAL(18,0),
+    mail NVARCHAR(255),
+    fecha_nacimiento DATE,
+    direccion NVARCHAR(255),
+    localidad DECIMAL(18,0),
+    provincia NVARCHAR(255)
+)
+
+
+--Descuentos tipo
+CREATE TABLE[Dr0p].[Descuentos_Tipo](
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    tipo NVARCHAR(255),
+    importe DECIMAL(18,2)
+)
 
 --MAPEO DE FKS --
 
@@ -91,11 +129,16 @@ ADD FOREIGN KEY (provincia) REFERENCES [Dr0p].[Provincias](nombre)
 ALTER TABLE [Dr0p].[Productos]
 ADD FOREIGN KEY (categoria) REFERENCES [Dr0p].Categorias(id)
 
-
+-- variantes-tipos_variantes-productos
 ALTER TABLE [Dr0p].[Variantes]
 ADD FOREIGN KEY (tipo_variante) REFERENCES [Dr0p].Tipos_Variantes(id),
     FOREIGN KEY (producto_codigo) REFERENCES [Dr0p].Productos(codigo)
 
+-- Clientes-localidad-provincia
+
+ALTER TABLE [Dr0p].[Clientes]
+ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].Localidades(id),
+    FOREIGN KEY (provincia) REFERENCES [Dr0p].Provincias(nombre)
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -208,5 +251,67 @@ GROUP BY
 	M.PRODUCTO_VARIANTE,
 	M.PRODUCTO_TIPO_VARIANTE,
 	M.PRODUCTO_CODIGO
+
+-- Envios Ventas
+
+INSERT INTO [Dr0p].[Envios_Ventas](
+    medio_envio,
+    medio_envio_precio
+)
+SELECT VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO
+FROM [gd_esquema].[Maestra]
+WHERE VENTA_MEDIO_ENVIO IS NOT NULL
+
+-- Canales de venta
+INSERT INTO [Dr0p].[Canales_de_venta](
+    descripcion,
+    costo
+)
+SELECT DISTINCT VENTA_CANAL, VENTA_CANAL_COSTO
+FROM [gd_esquema].[Maestra]
+WHERE VENTA_CANAL IS NOT NULL
+
+-- Descuentos Tipo
+
+/*
+-- OJO!! VENTA_DESCUENTO_IMPORTE NO es el valor de un descuento en particular, es el valor de la venta con los descuentos aplicados
+-- HABRIA QUE VER DE DONDE SACAR EL VALOR "IMPORTE" O NO TENERLO
+
+INSERT INTO [Dr0p].[Descuentos_Tipo](
+    tipo,
+    importe
+)
+SELECT VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE
+FROM [gd_esquema].[Maestra]
+WHERE VENTA_DESCUENTO_CONCEPTO IS NOT NULL
+*/
+
+
+-- Clientes
+INSERT INTO [Dr0p].[Clientes](
+    dni,
+    apellido,
+    nombre,
+    telefono,
+    mail,
+    fecha_nacimiento,
+    direccion,
+    localidad,
+    provincia
+)
+SELECT DISTINCT
+    M.CLIENTE_DNI,
+    M.CLIENTE_APELLIDO,
+    M.CLIENTE_NOMBRE,
+    M.CLIENTE_TELEFONO,
+    M.CLIENTE_MAIL,
+    M.CLIENTE_FECHA_NAC,
+    M.CLIENTE_DIRECCION,
+    (SELECT L.id FROM [Dr0p].[Localidades] L WHERE l.codigo_postal = m.CLIENTE_CODIGO_POSTAL AND l.nombre = m.CLIENTE_LOCALIDAD ),
+    M.CLIENTE_PROVINCIA
+FROM
+    gd_esquema.Maestra M
+WHERE
+    M.CLIENTE_DNI IS NOT NULL
 
 GO
