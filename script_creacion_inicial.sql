@@ -6,13 +6,13 @@ IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
 BEGIN
  EXECUTE('CREATE SCHEMA Dr0p')
 END
-GO
+
 
 --STORED PROCEDURE PARA BORRADO DE TABLAS --
 EXEC sp_MSforeachtable
   @command1 = 'DROP TABLE ?', 
   @whereand = 'AND SCHEMA_NAME(schema_id) = ''Dr0p'' '
-GO
+
 
 --CREACION DE TABLAS --
 
@@ -25,6 +25,7 @@ CREATE TABLE [Dr0p].[Proveedores](
 	localidad DECIMAL(18,0),
 	provincia NVARCHAR(255)	
 )
+
 
 --	Localidad
 CREATE TABLE [Dr0p].[Localidades](
@@ -39,11 +40,13 @@ CREATE TABLE [Dr0p].[Provincias](
 	nombre NVARCHAR(255) PRIMARY KEY
 )
 
+
 --Categorias
 CREATE TABLE [Dr0p].[Categorias] (
 	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
 	detalle NVARCHAR(255)
 )
+
 
 --Productos
 CREATE TABLE [Dr0p].[Productos](
@@ -56,19 +59,43 @@ CREATE TABLE [Dr0p].[Productos](
 )
 
 
+--Tipos Variante
+CREATE TABLE [Dr0p].[Tipos_Variantes](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	detalle NVARCHAR(50)
+)
+
+
+--Variantes
+CREATE TABLE [Dr0p].[Variantes](
+	codigo NVARCHAR(50) PRIMARY KEY,
+	variante NVARCHAR(50),
+	tipo_variante DECIMAL(18,0),
+	producto_codigo NVARCHAR(50)
+)
+
+
 --MAPEO DE FKS --
 
 --proveedores-localidades
 ALTER TABLE [Dr0p].[Proveedores]
 ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].[Localidades](id)
 
+
 --proveedores-provincias
 ALTER TABLE [Dr0p].[Proveedores]
 ADD FOREIGN KEY (provincia) REFERENCES [Dr0p].[Provincias](nombre)
 
+
 --productos-categorias
 ALTER TABLE [Dr0p].[Productos]
 ADD FOREIGN KEY (categoria) REFERENCES [Dr0p].Categorias(id)
+
+
+ALTER TABLE [Dr0p].[Variantes]
+ADD FOREIGN KEY (tipo_variante) REFERENCES [Dr0p].Tipos_Variantes(id),
+    FOREIGN KEY (producto_codigo) REFERENCES [Dr0p].Productos(codigo)
+
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -81,7 +108,7 @@ SELECT DISTINCT PROVEEDOR_LOCALIDAD, PROVEEDOR_CODIGO_POSTAL
 FROM [gd_esquema].[Maestra]
 WHERE PROVEEDOR_LOCALIDAD IS NOT NULL 
 AND PROVEEDOR_CODIGO_POSTAL IS NOT NULL
-GO
+
 
 --Provincia
 INSERT INTO [Dr0p].[Provincias](
@@ -90,7 +117,7 @@ INSERT INTO [Dr0p].[Provincias](
 SELECT DISTINCT PROVEEDOR_PROVINCIA
 FROM [gd_esquema].[Maestra]
 WHERE PROVEEDOR_PROVINCIA IS NOT NULL 
-GO
+
 
 --Proovedores
 INSERT INTO [Dr0p].[Proveedores](
@@ -107,14 +134,20 @@ PROVEEDOR_MAIL, PROVEEDOR_DOMICILIO,
 , PROVEEDOR_PROVINCIA
 FROM [gd_esquema].[Maestra] M
 WHERE PROVEEDOR_CUIT IS NOT NULL;
-GO
+
 
 --Categorias
 INSERT INTO [Dr0p].[Categorias] (
 	detalle
 )
-SELECT DISTINCT PRODUCTO_CATEGORIA FROM gd_esquema.Maestra WHERE PRODUCTO_CATEGORIA IS NOT NULL ORDER BY 1 ASC
-GO 
+SELECT DISTINCT 
+	PRODUCTO_CATEGORIA 
+FROM 
+	gd_esquema.Maestra 
+WHERE 
+	PRODUCTO_CATEGORIA IS NOT NULL 
+ORDER BY 1 ASC
+
 
 --Productos
 INSERT INTO [Dr0p].[Productos](
@@ -126,12 +159,54 @@ INSERT INTO [Dr0p].[Productos](
     categoria
 )
 SELECT DISTINCT 
-m.PRODUCTO_NOMBRE, 
-M.PRODUCTO_CODIGO,
-m.PRODUCTO_DESCRIPCION,
-m.PRODUCTO_MATERIAL,
-M.PRODUCTO_MARCA,
-(select C.id FROM [Dr0p].[Categorias] C WHERE C.detalle = M.PRODUCTO_CATEGORIA)
-FROM gd_esquema.Maestra M 
-where M.PRODUCTO_NOMBRE is not null
-order by PRODUCTO_NOMBRE ASC
+	M.PRODUCTO_CODIGO,
+	M.PRODUCTO_NOMBRE,
+	M.PRODUCTO_DESCRIPCION,
+	M.PRODUCTO_MATERIAL,
+	M.PRODUCTO_MARCA,
+	(select C.id FROM [Dr0p].[Categorias] C WHERE C.detalle = M.PRODUCTO_CATEGORIA)
+FROM 
+	gd_esquema.Maestra M 
+where 
+	M.PRODUCTO_NOMBRE is not null
+order by 
+	PRODUCTO_NOMBRE ASC
+
+
+--Tipos Variante
+INSERT INTO [Dr0p].[Tipos_Variantes](
+	detalle
+)
+SELECT DISTINCT 
+	m.PRODUCTO_TIPO_VARIANTE
+FROM 
+	gd_esquema.Maestra m 
+WHERE 
+	m.PRODUCTO_TIPO_VARIANTE IS NOT NULL
+
+
+--Variantes
+INSERT INTO [Dr0p].[Variantes](
+	codigo,
+	variante,
+	tipo_variante,
+	producto_codigo
+)
+SELECT  
+	M.PRODUCTO_VARIANTE_CODIGO,
+	M.PRODUCTO_VARIANTE,
+	(SELECT id FROM [Dr0p].[Tipos_Variantes] TV WHERE  TV.detalle = M.PRODUCTO_TIPO_VARIANTE),
+	M.PRODUCTO_CODIGO
+FROM 
+	gd_esquema.Maestra M 
+WHERE  
+	m.PRODUCTO_TIPO_VARIANTE IS NOT NULL 
+	AND  M.PRODUCTO_VARIANTE IS NOT NULL 
+	AND M.PRODUCTO_VARIANTE_CODIGO IS NOT NULL 
+GROUP BY 
+	M.PRODUCTO_VARIANTE_CODIGO,
+	M.PRODUCTO_VARIANTE,
+	M.PRODUCTO_TIPO_VARIANTE,
+	M.PRODUCTO_CODIGO
+
+GO
