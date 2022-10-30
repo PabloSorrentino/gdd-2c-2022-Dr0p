@@ -127,7 +127,7 @@ CREATE TABLE [Dr0p].[Medios_De_Pago](
 
 --COMPRAS
 CREATE TABLE [Dr0p].[Compras](
-	codigo DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
+	numero DECIMAL(19,0) PRIMARY KEY,
 	fecha DATE,
 	proveedor  NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.Proveedores(cuit),
 	medio_pago DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_De_Pago(id),
@@ -340,6 +340,26 @@ FROM
 WHERE 
 	VENTA_MEDIO_PAGO IS NOT NULL
 	
+
+INSERT INTO [Dr0p].[Compras](
+	numero,
+	fecha,
+	proveedor,
+	medio_pago,
+	total
+)
+SELECT DISTINCT 
+	M.COMPRA_NUMERO,
+	M.COMPRA_FECHA,
+	(SELECT P.cuit FROM [Dr0p].[Proveedores] P Where P.cuit = M.PROVEEDOR_CUIT) as PROVEEDOR_CUIT,
+	(SELECT MP.id FROM [Dr0p].[Medios_De_Pago] MP WHERE MP.tipo_medio = M.COMPRA_MEDIO_PAGO),
+	COMPRA_TOTAL
+FROM 
+	[GD2C2022].[gd_esquema].[Maestra] M
+ WHERE 
+	M.COMPRA_NUMERO IS NOT NULL
+ ORDER BY 
+	M.COMPRA_NUMERO ASC
 
 
 --isntruccion final para cerrar lote
