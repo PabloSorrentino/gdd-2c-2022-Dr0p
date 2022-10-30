@@ -1,5 +1,3 @@
--- noinspection SqlNoDataSourceInspectionForFile
-
 USE [GD2C2022]
 GO
 
@@ -18,17 +16,6 @@ EXEC sp_MSforeachtable
 
 --CREACION DE TABLAS --
 
---	Proovedores
-CREATE TABLE [Dr0p].[Proveedores](
-	cuit NVARCHAR(255) PRIMARY KEY,
-	razon_social NVARCHAR(50),
-	mail NVARCHAR(50),
-	domicilio NVARCHAR(50),
-	localidad DECIMAL(18,0),
-	provincia NVARCHAR(255)	
-)
-
-
 --	Localidad
 CREATE TABLE [Dr0p].[Localidades](
 	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY ,
@@ -42,6 +29,15 @@ CREATE TABLE [Dr0p].[Provincias](
 	nombre NVARCHAR(255) PRIMARY KEY
 )
 
+--	Proovedores
+CREATE TABLE [Dr0p].[Proveedores](
+	cuit NVARCHAR(255) PRIMARY KEY,
+	razon_social NVARCHAR(50),
+	mail NVARCHAR(50),
+	domicilio NVARCHAR(50),
+	localidad DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Localidades(id),
+	provincia NVARCHAR(255)	FOREIGN KEY REFERENCES Dr0p.Provincias(nombre)
+)
 
 --Categorias
 CREATE TABLE [Dr0p].[Categorias] (
@@ -57,9 +53,8 @@ CREATE TABLE [Dr0p].[Productos](
     descripcion NVARCHAR(50),
     material NVARCHAR(50),
     marca  NVARCHAR(255),
-    categoria DECIMAL(18,0)
+    categoria DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Categorias(id)
 )
-
 
 --Tipos Variante
 CREATE TABLE [Dr0p].[Tipos_Variantes](
@@ -72,8 +67,8 @@ CREATE TABLE [Dr0p].[Tipos_Variantes](
 CREATE TABLE [Dr0p].[Variantes](
 	codigo NVARCHAR(50) PRIMARY KEY,
 	variante NVARCHAR(50),
-	tipo_variante DECIMAL(18,0),
-	producto_codigo NVARCHAR(50)
+	tipo_variante DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Tipos_Variantes(id),
+	producto_codigo NVARCHAR(50) FOREIGN KEY REFERENCES [Dr0p].Productos(codigo)
 )
 
 -- Envios Ventas
@@ -101,10 +96,9 @@ CREATE TABLE [Dr0p].[Clientes](
     mail NVARCHAR(255),
     fecha_nacimiento DATE,
     direccion NVARCHAR(255),
-    localidad DECIMAL(18,0),
-    provincia NVARCHAR(255)
+    localidad DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Localidades(id),
+    provincia NVARCHAR(255) FOREIGN KEY REFERENCES [Dr0p].Provincias(nombre)
 )
-
 
 --Descuentos tipo
 CREATE TABLE[Dr0p].[Descuentos_Tipo](
@@ -117,39 +111,28 @@ CREATE TABLE[Dr0p].[Descuentos_Tipo](
 CREATE TABLE [Dr0p].[Cupones](
     id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     codigo NVARCHAR(255),
-    fecha_desde date,
-    fecha_hasta date,
+    fecha_desde DATE,
+    fecha_hasta DATE,
     valor DECIMAL(18,2),
     tipo NVARCHAR(50)
 )
 
---MAPEO DE FKS --
+--Medios de Pago
+CREATE TABLE [Dr0p].[Medios_De_Pago](
+	id DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
+	tipo_medio NVARCHAR(255),
+	costo_venta DECIMAL(18,2),
+	porcentaje_descuento_venta DECIMAL(18,2)
+)
 
---proveedores-localidades
-ALTER TABLE [Dr0p].[Proveedores]
-ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].[Localidades](id)
-
-
---proveedores-provincias
-ALTER TABLE [Dr0p].[Proveedores]
-ADD FOREIGN KEY (provincia) REFERENCES [Dr0p].[Provincias](nombre)
-
-
---productos-categorias
-ALTER TABLE [Dr0p].[Productos]
-ADD FOREIGN KEY (categoria) REFERENCES [Dr0p].Categorias(id)
-
--- variantes-tipos_variantes-productos
-ALTER TABLE [Dr0p].[Variantes]
-ADD FOREIGN KEY (tipo_variante) REFERENCES [Dr0p].Tipos_Variantes(id),
-    FOREIGN KEY (producto_codigo) REFERENCES [Dr0p].Productos(codigo)
-
--- Clientes-localidad-provincia
-
-ALTER TABLE [Dr0p].[Clientes]
-ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].Localidades(id),
-    FOREIGN KEY (provincia) REFERENCES [Dr0p].Provincias(nombre)
-
+--COMPRAS
+CREATE TABLE [Dr0p].[Compras](
+	codigo DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
+	fecha DATE,
+	proveedor  NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.Proveedores(cuit),
+	medio_pago DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_De_Pago(id),
+	total DECIMAL(18,2)
+)
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -264,7 +247,6 @@ GROUP BY
 	M.PRODUCTO_CODIGO
 
 -- Envios Ventas
-
 INSERT INTO [Dr0p].[Envios_Ventas](
     medio_envio,
     medio_envio_precio
@@ -287,7 +269,6 @@ WHERE VENTA_CANAL IS NOT NULL
 /*
 -- OJO!! VENTA_DESCUENTO_IMPORTE NO es el valor de un descuento en particular, es el valor de la venta con los descuentos aplicados
 -- HABRIA QUE VER DE DONDE SACAR EL VALOR "IMPORTE" O NO TENERLO
-
 INSERT INTO [Dr0p].[Descuentos_Tipo](
     tipo,
     importe
@@ -344,4 +325,23 @@ FROM
 WHERE
     VENTA_CUPON_CODIGO IS NOT NULL
 
+--Medio de Pago
+INSERT INTO [Dr0p].[Medios_De_Pago] (
+	tipo_medio,
+	costo_venta,
+	porcentaje_descuento_venta
+)
+SELECT DISTINCT
+	VENTA_MEDIO_PAGO,
+    VENTA_MEDIO_PAGO_COSTO,
+	0 PORCENTAJE_DESCUENTO_VENTA
+FROM 
+	gd_esquema.Maestra
+WHERE 
+	VENTA_MEDIO_PAGO IS NOT NULL
+	
+
+
+--isntruccion final para cerrar lote
 GO
+
