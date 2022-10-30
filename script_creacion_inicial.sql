@@ -113,6 +113,16 @@ CREATE TABLE[Dr0p].[Descuentos_Tipo](
     importe DECIMAL(18,2)
 )
 
+-- Cupones
+CREATE TABLE [Dr0p].[Cupones](
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    codigo NVARCHAR(255),
+    fecha_desde date,
+    fecha_hasta date,
+    valor DECIMAL(18,2),
+    tipo NVARCHAR(50)
+)
+
 --MAPEO DE FKS --
 
 --proveedores-localidades
@@ -139,6 +149,7 @@ ADD FOREIGN KEY (tipo_variante) REFERENCES [Dr0p].Tipos_Variantes(id),
 ALTER TABLE [Dr0p].[Clientes]
 ADD FOREIGN KEY (localidad) REFERENCES [Dr0p].Localidades(id),
     FOREIGN KEY (provincia) REFERENCES [Dr0p].Provincias(nombre)
+
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -313,5 +324,24 @@ FROM
     gd_esquema.Maestra M
 WHERE
     M.CLIENTE_DNI IS NOT NULL
+
+-- Cupones
+INSERT INTO [Dr0p].[Cupones](
+    codigo,
+    fecha_desde,
+    fecha_hasta,
+    valor,
+    tipo
+)
+SELECT DISTINCT
+    VENTA_CUPON_CODIGO,
+    VENTA_CUPON_FECHA_DESDE,
+    VENTA_CUPON_FECHA_HASTA,
+    VENTA_CUPON_VALOR,
+    VENTA_CUPON_TIPO
+FROM
+    gd_esquema.Maestra
+WHERE
+    VENTA_CUPON_CODIGO IS NOT NULL
 
 GO
