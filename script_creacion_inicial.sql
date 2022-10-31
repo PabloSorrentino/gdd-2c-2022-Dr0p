@@ -125,7 +125,7 @@ CREATE TABLE [Dr0p].[Medios_De_Pago](
 	porcentaje_descuento_venta DECIMAL(18,2)
 )
 
---COMPRAS
+--Compras
 CREATE TABLE [Dr0p].[Compras](
 	numero DECIMAL(19,0) PRIMARY KEY,
 	fecha DATE,
@@ -133,6 +133,17 @@ CREATE TABLE [Dr0p].[Compras](
 	medio_pago DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_De_Pago(id),
 	total DECIMAL(18,2)
 )
+
+--Compras-Productos
+CREATE TABLE [Dr0p].[Compras_Productos](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	precio DECIMAL(18,2),
+	cantidad DECIMAL(18,2),
+	compra_numero DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Compras(numero),
+	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo)
+)
+
+
 
 --INSERCION DE DATOS A TABLAS --
 
@@ -340,7 +351,7 @@ FROM
 WHERE 
 	VENTA_MEDIO_PAGO IS NOT NULL
 	
-
+--Compras
 INSERT INTO [Dr0p].[Compras](
 	numero,
 	fecha,
@@ -361,7 +372,24 @@ FROM
  ORDER BY 
 	M.COMPRA_NUMERO ASC
 
+--Compras Productos
+INSERT INTO [Dr0p].[Compras_Productos](
+	precio,
+	cantidad,
+	compra_numero,
+	producto_codigo
+)
+SELECT 
+	[COMPRA_PRODUCTO_PRECIO],
+	[COMPRA_PRODUCTO_CANTIDAD],
+	[COMPRA_NUMERO],
+	[PRODUCTO_CODIGO]      
+FROM 
+	[GD2C2022].[gd_esquema].[Maestra]
+WHERE 
+	COMPRA_NUMERO IS NOT NULL
+ORDER BY
+	COMPRA_NUMERO ASC
 
 --isntruccion final para cerrar lote
 GO
-
