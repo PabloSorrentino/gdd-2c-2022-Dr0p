@@ -1,16 +1,19 @@
 tablas hechas:
-
---	Proovedores
---	Localidad
---	Provincia
---Categorias
---Productos
---Tipos Variante
---Variantes
--- Envios venta
--- Canales de venta
--- Descuento tipo (ver comentario)
--- Clientes
--- Cupones
--- Medio de Pago
---Compras
+------------------------------------------------------
+|       NOMBRE                  | DATOS INSERTADOS   |
+------------------------------------------------------
+--Proovedores                       SI
+--Localidad                         SI
+--Provincia                         SI
+--Categorias                        SI
+--Productos                         SI
+--Tipos Variante                    SI
+--Variantes                         SI    
+--Envios venta                      SI
+--Canales de venta                  SI
+--Descuento tipo (ver comentario)   NO
+--Clientes                          SI
+--Cupones                           SI
+--Medio de Pago                     SI
+--Compras                           SI
+--Compras Productos                 SI
