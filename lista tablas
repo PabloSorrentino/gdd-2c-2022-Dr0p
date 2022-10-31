@@ -11,7 +11,7 @@ tablas hechas:
 --Variantes                         SI    
 --Envios venta                      SI
 --Canales de venta                  SI
---Descuento tipo (ver comentario)   NO
+--Descuento tipo                    SI
 --Clientes                          SI
 --Cupones                           SI
 --Medio de Pago                     SI
