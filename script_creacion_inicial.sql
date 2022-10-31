@@ -134,6 +134,13 @@ CREATE TABLE [Dr0p].[Compras](
 	total DECIMAL(18,2)
 )
 
+--Descuento-Compras
+CREATE TABLE [Dr0p].[Descuentos_Compra](
+	codigo DECIMAL(18,0) PRIMARY KEY,
+	codigo_compra DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Compras(numero),
+	valor_descuento DECIMAL(18,2)
+)
+
 --Compras-Productos
 CREATE TABLE [Dr0p].[Compras_Productos](
 	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
@@ -143,6 +150,52 @@ CREATE TABLE [Dr0p].[Compras_Productos](
 	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo)
 )
 
+--Ventas
+CREATE TABLE [Dr0p].[Ventas](
+	codigo DECIMAL(19,0) PRIMARY KEY,
+	fecha DATE,
+	cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Clientes(id),
+	medio_pago DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_De_Pago(id),
+	envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Envios_Ventas(id),
+	canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Canales_de_venta(id),
+	total DECIMAL(18,2) NOT NULL,
+	costo_canal_venta DECIMAL(18,2)		
+)
+
+--Ventas-Productos
+CREATE TABLE [Dr0p].[Ventas_Productos](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
+	producto_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo),
+	precio DECIMAL(18,2) NOT NULL,
+	cantidad DECIMAL(18,0) NOT NULL
+)
+
+-- Ventas-Medios de Pago
+CREATE TABLE [Dr0p].[Ventas_Medios_De_Pago](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	costo_medio_pago_aplicado DECIMAL(18,2),
+	porcentaje_descuento_medio_pago_aplicado DECIMAL(18,2),
+	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
+	medio_de_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_de_Pago(id)
+)
+
+--Ventas-Cupones
+CREATE TABLE [Dr0p].[Ventas_Cupones](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	importe DECIMAL(18,2),
+	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
+	cupon_id DECIMAL(18,0)  FOREIGN KEY REFERENCES Dr0p.Cupones(id)
+)
+
+--Descuentos-Venta
+CREATE TABLE [Dr0p].[Descuentos_Ventas](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	descuento_tipo_id DECIMAL (18,0) FOREIGN KEY REFERENCES Dr0p.Descuentos_Tipo(id),
+	concepto NVARCHAR(255),
+	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
+	importe_descuento_venta DECIMAL(18,2) 
+)
 
 
 --INSERCION DE DATOS A TABLAS --
@@ -351,7 +404,7 @@ FROM
 WHERE 
 	VENTA_MEDIO_PAGO IS NOT NULL
 	
---Compras
+
 INSERT INTO [Dr0p].[Compras](
 	numero,
 	fecha,
@@ -372,7 +425,6 @@ FROM
  ORDER BY 
 	M.COMPRA_NUMERO ASC
 
---Compras Productos
 INSERT INTO [Dr0p].[Compras_Productos](
 	precio,
 	cantidad,
@@ -380,12 +432,13 @@ INSERT INTO [Dr0p].[Compras_Productos](
 	producto_codigo
 )
 SELECT 
-	[COMPRA_PRODUCTO_PRECIO],
-	[COMPRA_PRODUCTO_CANTIDAD],
-	[COMPRA_NUMERO],
-	[PRODUCTO_CODIGO]      
+	   [COMPRA_PRODUCTO_PRECIO],
+	   [COMPRA_PRODUCTO_CANTIDAD],
+	   [COMPRA_NUMERO],
+	   [PRODUCTO_CODIGO]      
 FROM 
 	[GD2C2022].[gd_esquema].[Maestra]
+
 WHERE 
 	COMPRA_NUMERO IS NOT NULL
 ORDER BY
