@@ -502,13 +502,14 @@ WHERE M.VENTA_DESCUENTO_CONCEPTO IS NOT NULL
 INSERT INTO Dr0p.Ventas_Cupones(
 	importe,
 	venta_codigo,
-	cupon_id
+	cupon_id 
 )
-SELECT
+SELECT 
 	VENTA_CUPON_IMPORTE,
-	VENTA_CODIGO,
-	VENTA_CUPON_CODIGO
-FROM [gd_esquema].[Maestra]
+	(SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO), 
+	(SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO) 
+FROM 
+	[gd_esquema].[Maestra] M
 
 --Ventas-Productos
 
