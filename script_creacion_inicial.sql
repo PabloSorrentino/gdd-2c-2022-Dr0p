@@ -155,7 +155,6 @@ CREATE TABLE [Dr0p].[Ventas](
 	codigo DECIMAL(19,0) PRIMARY KEY,
 	fecha DATE,
 	cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Clientes(id),
-	medio_pago DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_De_Pago(id),
 	envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Envios_Ventas(id),
 	canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Canales_de_venta(id),
 	total DECIMAL(18,2) NOT NULL,
@@ -324,23 +323,19 @@ INSERT INTO [Dr0p].[Canales_de_venta](
     descripcion,
     costo
 )
-SELECT DISTINCT VENTA_CANAL, VENTA_CANAL_COSTO
+SELECT DISTINCT VENTA_CANAL, 0
 FROM [gd_esquema].[Maestra]
 WHERE VENTA_CANAL IS NOT NULL
 
 -- Descuentos Tipo
-
-/*
--- OJO!! VENTA_DESCUENTO_IMPORTE NO es el valor de un descuento en particular, es el valor de la venta con los descuentos aplicados
--- HABRIA QUE VER DE DONDE SACAR EL VALOR "IMPORTE" O NO TENERLO
 INSERT INTO [Dr0p].[Descuentos_Tipo](
     tipo,
     importe
 )
-SELECT VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE
+SELECT VENTA_DESCUENTO_CONCEPTO as TIPO, 0 as IMPORTE
 FROM [gd_esquema].[Maestra]
 WHERE VENTA_DESCUENTO_CONCEPTO IS NOT NULL
-*/
+
 
 
 -- Clientes
@@ -398,7 +393,7 @@ INSERT INTO [Dr0p].[Medios_De_Pago] (
 SELECT DISTINCT
 	VENTA_MEDIO_PAGO,
     VENTA_MEDIO_PAGO_COSTO,
-	0 PORCENTAJE_DESCUENTO_VENTA
+	0 as PORCENTAJE_DESCUENTO_VENTA
 FROM 
 	gd_esquema.Maestra
 WHERE 
@@ -443,6 +438,67 @@ WHERE
 	COMPRA_NUMERO IS NOT NULL
 ORDER BY
 	COMPRA_NUMERO ASC
+
+--Ventas
+/*CREATE TABLE [Dr0p].[Ventas](
+    codigo DECIMAL(19,0) PRIMARY KEY,
+    fecha DATE,
+    cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Clientes(id),
+    envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Envios_Ventas(id),
+    canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Canales_de_venta(id),
+    total DECIMAL(18,2) NOT NULL,
+    costo_canal_venta DECIMAL(18,2)
+    )*/
+INSERT INTO [Dr0p].[Ventas](
+    codigo,
+    fecha,
+    cliente_id,
+    envio_id,
+    canal_venta_id,
+    total,
+    costo_canal_venta
+)
+SELECT
+    VENTA_CODIGO,
+    VENTA_FECHA,
+    (SELECT TOP 1 id FROM Dr0p.Clientes C WHERE
+            C.dni = M.CLIENTE_DNI AND C.apellido = M.CLIENTE_APELLIDO AND C.nombre = M.CLIENTE_NOMBRE),
+    (SELECT TOP 1 id FROM Dr0p.Envios_Ventas E WHERE ),
+    (SELECT * FROM Dr0p.Canales_de_venta),
+    ISNULL(VENTA_TOTAL, 0),
+    VENTA_CANAL_COSTO
+FROM
+    [gd_esquema].[Maestra] M
+
+
+-- Descuentos ventas
+
+/*
+
+CREATE TABLE [Dr0p].[Descuentos_Ventas](
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+	descuento_tipo_id DECIMAL (18,0) FOREIGN KEY REFERENCES Dr0p.Descuentos_Tipo(id),
+	concepto NVARCHAR(255),
+	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
+	importe_descuento_venta DECIMAL(18,2)
+)
+
+
+*/
+
+INSERT INTO [Dr0p].[Descuentos_Ventas](
+    descuento_tipo_id,
+    concepto,
+    venta_codigo,
+    importe_descuento_venta
+)
+SELECT
+     --- ver si esta ok
+FROM [gd_esquema].[Maestra]
+
+
+
+
 
 --isntruccion final para cerrar lote
 GO
