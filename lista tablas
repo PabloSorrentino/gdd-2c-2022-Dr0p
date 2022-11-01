@@ -16,7 +16,7 @@ tablas hechas:
 --Cupones                           SI
 --Medio de Pago                     SI
 --Compras                           SI
---Descuentos Compra                 NO
+--Descuentos Compra                 SI
 --Compras Productos                 SI
 --Ventas                            NO
 --Ventas Productos                  NO
