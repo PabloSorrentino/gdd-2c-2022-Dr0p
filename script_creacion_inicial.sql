@@ -468,7 +468,7 @@ INSERT INTO [Dr0p].[Ventas](
     total,
     costo_canal_venta
 )
-SELECT
+SELECT DISTINCT
     VENTA_CODIGO,
     VENTA_FECHA,
     (SELECT TOP 1 id FROM Dr0p.Clientes C WHERE
@@ -479,22 +479,10 @@ SELECT
     VENTA_CANAL_COSTO
 FROM
     [gd_esquema].[Maestra] M
+WHERE VENTA_CODIGO IS NOT NULL
 
 
 -- Descuentos ventas
-
-/*
-
-CREATE TABLE [Dr0p].[Descuentos_Ventas](
-	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-	descuento_tipo_id DECIMAL (18,0) FOREIGN KEY REFERENCES Dr0p.Descuentos_Tipo(id),
-	concepto NVARCHAR(255),
-	venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
-	importe_descuento_venta DECIMAL(18,2)
-)
-
-
-*/
 
 INSERT INTO [Dr0p].[Descuentos_Ventas](
     descuento_tipo_id,
@@ -503,9 +491,12 @@ INSERT INTO [Dr0p].[Descuentos_Ventas](
     importe_descuento_venta
 )
 SELECT
-     --- ver si esta ok
-FROM [gd_esquema].[Maestra]
-
+    (SELECT TOP 1 id FROM [Dr0p].[Descuentos_Tipo] DT WHERE DT.tipo = M.VENTA_DESCUENTO_CONCEPTO),
+    VENTA_DESCUENTO_CONCEPTO,
+    VENTA_CODIGO,
+    VENTA_DESCUENTO_IMPORTE
+FROM [gd_esquema].[Maestra] M
+WHERE M.VENTA_DESCUENTO_CONCEPTO IS NOT NULL
 
 
 
