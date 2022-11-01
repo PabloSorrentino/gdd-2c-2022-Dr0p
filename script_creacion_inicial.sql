@@ -459,15 +459,6 @@ ORDER BY
 
 
 --Ventas
-/*CREATE TABLE [Dr0p].[Ventas](
-    codigo DECIMAL(19,0) PRIMARY KEY,
-    fecha DATE,
-    cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Clientes(id),
-    envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Envios_Ventas(id),
-    canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Canales_de_venta(id),
-    total DECIMAL(18,2) NOT NULL,
-    costo_canal_venta DECIMAL(18,2)
-    )*/
 INSERT INTO [Dr0p].[Ventas](
     codigo,
     fecha,
@@ -482,8 +473,8 @@ SELECT
     VENTA_FECHA,
     (SELECT TOP 1 id FROM Dr0p.Clientes C WHERE
             C.dni = M.CLIENTE_DNI AND C.apellido = M.CLIENTE_APELLIDO AND C.nombre = M.CLIENTE_NOMBRE),
-    (SELECT TOP 1 id FROM Dr0p.Envios_Ventas E WHERE ),
-    (SELECT * FROM Dr0p.Canales_de_venta),
+    (SELECT TOP 1 id FROM Dr0p.Envios_Ventas E WHERE E.medio_envio = M.VENTA_MEDIO_ENVIO AND E.medio_envio_precio = M.VENTA_ENVIO_PRECIO),
+    (SELECT TOP 1 id FROM Dr0p.Canales_de_venta C WHERE  C.costo = M.VENTA_CANAL_COSTO AND C.descripcion = M.VENTA_CANAL),
     ISNULL(VENTA_TOTAL, 0),
     VENTA_CANAL_COSTO
 FROM
