@@ -11,12 +11,12 @@ tablas hechas:
 --Variantes                         SI    
 --Envios venta                      SI
 --Canales de venta                  SI
---Descuento tipo (ver comentario)   NO
+--Descuento tipo                    SI
 --Clientes                          SI
 --Cupones                           SI
 --Medio de Pago                     SI
 --Compras                           SI
---Descuentos Compra                 NO
+--Descuentos Compra                 SI
 --Compras Productos                 SI
 --Ventas                            NO
 --Ventas Productos                  NO
