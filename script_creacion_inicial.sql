@@ -137,7 +137,7 @@ CREATE TABLE [Dr0p].[Compras](
 --Descuento-Compras
 CREATE TABLE [Dr0p].[Descuentos_Compra](
 	codigo DECIMAL(18,0) PRIMARY KEY,
-	codigo_compra DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Compras(numero),
+	numero_compra DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Compras(numero),
 	valor_descuento DECIMAL(18,2)
 )
 
@@ -404,7 +404,7 @@ FROM
 WHERE 
 	VENTA_MEDIO_PAGO IS NOT NULL
 	
-
+--Compras
 INSERT INTO [Dr0p].[Compras](
 	numero,
 	fecha,
@@ -425,6 +425,7 @@ FROM
  ORDER BY 
 	M.COMPRA_NUMERO ASC
 
+--Compras Productos
 INSERT INTO [Dr0p].[Compras_Productos](
 	precio,
 	cantidad,
@@ -443,6 +444,24 @@ WHERE
 	COMPRA_NUMERO IS NOT NULL
 ORDER BY
 	COMPRA_NUMERO ASC
+
+--Descuentos Compra
+INSERT INTO [Dr0p].[Descuentos_Compra](
+	codigo,
+	numero_compra,
+	valor_descuento	
+)
+SELECT 
+	DESCUENTO_COMPRA_CODIGO,
+	COMPRA_NUMERO,
+	DESCUENTO_COMPRA_VALOR
+FROM 
+	[gd_esquema].[Maestra]
+WHERE 
+	DESCUENTO_COMPRA_CODIGO IS NOT NULL
+ORDER BY
+	DESCUENTO_COMPRA_CODIGO ASC
+
 
 --isntruccion final para cerrar lote
 GO
