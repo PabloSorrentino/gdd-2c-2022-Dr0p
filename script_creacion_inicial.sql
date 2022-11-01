@@ -384,7 +384,7 @@ FROM
 WHERE
     VENTA_CUPON_CODIGO IS NOT NULL
 
---Medio de Pago
+--Medios de Pago
 INSERT INTO [Dr0p].[Medios_De_Pago] (
 	tipo_medio,
 	costo_venta,
@@ -498,6 +498,39 @@ SELECT
 FROM [gd_esquema].[Maestra] M
 WHERE M.VENTA_DESCUENTO_CONCEPTO IS NOT NULL
 
+
+--Ventas-Productos
+
+INSERT INTO [Dr0p].[Ventas_Productos](
+    venta_codigo,
+    producto_codigo,
+    precio,
+    cantidad
+)
+SELECT DISTINCT
+    VENTA_CODIGO,
+    PRODUCTO_CODIGO,
+    VENTA_PRODUCTO_PRECIO,
+    VENTA_PRODUCTO_CANTIDAD
+FROM [gd_esquema].[Maestra] M
+WHERE M.VENTA_CODIGO IS NOT NULL AND M.PRODUCTO_CODIGO IS NOT NULL
+
+
+-- Ventas-Medios de Pago
+
+INSERT INTO [Dr0p].[Ventas_Medios_De_Pago](
+    costo_medio_pago_aplicado,
+    porcentaje_descuento_medio_pago_aplicado,
+    venta_codigo,
+    medio_de_pago_id
+)
+SELECT DISTINCT
+    VENTA_MEDIO_PAGO_COSTO,
+    0,
+    VENTA_CODIGO,
+    (SELECT TOP 1 id FROM [Dr0p].[Medios_De_Pago] MP WHERE MP.tipo_medio = M.VENTA_MEDIO_PAGO)
+FROM [gd_esquema].[Maestra] M
+WHERE M.VENTA_CODIGO IS NOT NULL AND M.VENTA_MEDIO_PAGO IS NOT NULL
 
 
 
