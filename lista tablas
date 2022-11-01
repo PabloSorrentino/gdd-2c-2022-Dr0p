@@ -18,8 +18,8 @@ tablas hechas:
 --Compras                           SI
 --Descuentos Compra                 SI
 --Compras Productos                 SI
---Ventas                            NO
+--Ventas                            SI
 --Ventas Productos                  NO
 --Ventas Medios de Pago             NO
 --Ventas Cupones                    NO  
---Descuentos Ventas                 NO
+--Descuentos Ventas                 SI
