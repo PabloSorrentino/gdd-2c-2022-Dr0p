@@ -498,8 +498,17 @@ SELECT
 FROM [gd_esquema].[Maestra] M
 WHERE M.VENTA_DESCUENTO_CONCEPTO IS NOT NULL
 
-
-
+--Venta-Cupones
+INSERT INTO Dr0p.Ventas_Cupones(
+	importe,
+	venta_codigo,
+	cupon_id 
+)
+SELECT 
+	VENTA_CUPON_IMPORTE,
+	VENTA_CODIGO,
+	VENTA_CUPON_CODIGO
+FROM [gd_esquema].[Maestra]
 
 --isntruccion final para cerrar lote
 GO
