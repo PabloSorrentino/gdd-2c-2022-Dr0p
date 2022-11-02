@@ -1,6 +1,18 @@
 USE [GD2C2022]
 GO
 
+IF OBJECT_ID('[Dr0p].calcular_porcentaje') IS NOT NULL
+DROP FUNCTION calcular_porcentaje
+    GO
+CREATE FUNCTION [Dr0p].calcular_porcentaje (@total DECIMAL(18, 2),	@numero DECIMAL(18,2))
+RETURNS DECIMAL(5, 2)
+AS
+BEGIN
+RETURN (@numero / @total * 100);
+END
+
+GO
+
 --CREACION ESQUEMA --
 IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
 BEGIN
@@ -10,7 +22,7 @@ END
 
 --STORED PROCEDURE PARA BORRADO DE TABLAS --
 EXEC sp_MSforeachtable
-  @command1 = 'DROP TABLE ?', 
+  @command1 = 'DROP TABLE ?',
   @whereand = 'AND SCHEMA_NAME(schema_id) = ''Dr0p'' '
 
 
@@ -189,7 +201,7 @@ CREATE TABLE [Dr0p].[Ventas_Productos](
 CREATE TABLE [Dr0p].[Ventas_Medios_De_Pago](
                                                id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     costo_medio_pago_aplicado DECIMAL(18,2),
-    porcentaje_descuento_medio_pago_aplicado DECIMAL(18,2),
+    porcentaje_descuento_medio_pago_aplicado DECIMAL(5,2),
     venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
     medio_de_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_de_Pago(id)
     )
@@ -533,11 +545,11 @@ INSERT INTO Dr0p.Ventas_Cupones(
     cupon_id
 )
 SELECT
-	VENTA_CUPON_IMPORTE,
-	(SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO),
-	(SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
+    VENTA_CUPON_IMPORTE,
+    (SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO),
+    (SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
 FROM
-	[gd_esquema].[Maestra] M
+    [gd_esquema].[Maestra] M
 
 --Ventas-Productos
 
@@ -566,13 +578,13 @@ INSERT INTO [Dr0p].[Ventas_Medios_De_Pago](
 )
 SELECT DISTINCT
     VENTA_MEDIO_PAGO_COSTO,
-    0,
+    CASE
+        WHEN (M.VENTA_DESCUENTO_CONCEPTO = M.VENTA_MEDIO_PAGO) THEN (SELECT Dr0p.calcular_porcentaje(M.VENTA_TOTAL, M.VENTA_DESCUENTO_IMPORTE))
+        ELSE 0
+        END,
     VENTA_CODIGO,
     (SELECT TOP 1 id FROM [Dr0p].[Medios_De_Pago] MP WHERE MP.tipo_medio = M.VENTA_MEDIO_PAGO)
 FROM [gd_esquema].[Maestra] M
 WHERE M.VENTA_CODIGO IS NOT NULL AND M.VENTA_MEDIO_PAGO IS NOT NULL
 
-
-
---isntruccion final para cerrar lote
-    GO
+GO
