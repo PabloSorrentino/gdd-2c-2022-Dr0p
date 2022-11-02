@@ -533,10 +533,11 @@ INSERT INTO Dr0p.Ventas_Cupones(
     cupon_id
 )
 SELECT
-    VENTA_CUPON_IMPORTE,
-    VENTA_CODIGO,
-    (SELECT TOP 1 C.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
-FROM [gd_esquema].[Maestra] M
+	VENTA_CUPON_IMPORTE,
+	(SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO),
+	(SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
+FROM
+	[gd_esquema].[Maestra] M
 
 --Ventas-Productos
 
