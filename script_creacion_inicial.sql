@@ -2,30 +2,28 @@ USE [GD2C2022]
 GO
 
 --CREACION ESQUEMA --
-
 IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
 BEGIN
 EXECUTE('CREATE SCHEMA Dr0p')
 END
-
---CREACION FUNC. AUXILIAR--
-
-IF OBJECT_ID('[Dr0p].calcular_porcentaje') IS NOT NULL
-DROP FUNCTION calcular_porcentaje
-    GO
-CREATE FUNCTION [Dr0p].calcular_porcentaje (@total DECIMAL(18, 2),	@numero DECIMAL(18,2))
-RETURNS DECIMAL(5, 2)
-AS
-BEGIN
-RETURN (@numero / @total * 100);
-END
-
 GO
 
 --STORED PROCEDURE PARA BORRADO DE TABLAS --
 EXEC sp_MSforeachtable
   @command1 = 'DROP TABLE ?',
   @whereand = 'AND SCHEMA_NAME(schema_id) = ''Dr0p'' '
+GO
+
+
+--CREACION FUNCION AUXILIAR PARA CALCULAR PORCENTAJE
+CREATE FUNCTION [Dr0p].calcular_porcentaje (@total DECIMAL(18, 2),	@numero DECIMAL(18,2))
+RETURNS DECIMAL(5, 2)
+AS
+BEGIN
+RETURN (@numero / @total * 100);
+END
+GO
+
 
 --CREACION DE TABLAS --
 
@@ -171,11 +169,12 @@ CREATE TABLE [Dr0p].[Descuentos_Compra](
 
 --Compras-Productos
 CREATE TABLE [Dr0p].[Compras_Productos](
-                                           id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     precio DECIMAL(18,2),
     cantidad DECIMAL(18,2),
     compra_numero DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Compras(numero),
-    producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo)
+    producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo),
+	variante_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Variantes(codigo)
     )
 
 --Ventas
@@ -191,9 +190,10 @@ CREATE TABLE [Dr0p].[Ventas](
 
 --Ventas-Productos
 CREATE TABLE [Dr0p].[Ventas_Productos](
-                                          id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
-    producto_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo),
+    producto_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Productos(codigo), 
+	variante_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.Variantes(codigo),
     precio DECIMAL(18,2) NOT NULL,
     cantidad DECIMAL(18,0) NOT NULL
     )
@@ -464,13 +464,15 @@ INSERT INTO [Dr0p].[Compras_Productos](
     precio,
     cantidad,
     compra_numero,
-    producto_codigo
+    producto_codigo,
+	variante_codigo
 )
 SELECT
-    [COMPRA_PRODUCTO_PRECIO],
-    [COMPRA_PRODUCTO_CANTIDAD],
-    [COMPRA_NUMERO],
-    [PRODUCTO_CODIGO]
+    COMPRA_PRODUCTO_PRECIO,
+    COMPRA_PRODUCTO_CANTIDAD,
+    COMPRA_NUMERO,
+    PRODUCTO_CODIGO,
+	PRODUCTO_VARIANTE_CODIGO
 FROM
     [GD2C2022].[gd_esquema].[Maestra]
 
@@ -557,12 +559,14 @@ FROM
 INSERT INTO [Dr0p].[Ventas_Productos](
     venta_codigo,
     producto_codigo,
+	variante_codigo,
     precio,
     cantidad
 )
 SELECT DISTINCT
     VENTA_CODIGO,
     PRODUCTO_CODIGO,
+	PRODUCTO_VARIANTE_CODIGO,
     VENTA_PRODUCTO_PRECIO,
     VENTA_PRODUCTO_CANTIDAD
 FROM [gd_esquema].[Maestra] M
