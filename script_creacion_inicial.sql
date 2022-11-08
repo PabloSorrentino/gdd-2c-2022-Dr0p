@@ -1,6 +1,15 @@
 USE [GD2C2022]
 GO
 
+--CREACION ESQUEMA --
+
+IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
+BEGIN
+EXECUTE('CREATE SCHEMA Dr0p')
+END
+
+--CREACION FUNC. AUXILIAR--
+
 IF OBJECT_ID('[Dr0p].calcular_porcentaje') IS NOT NULL
 DROP FUNCTION calcular_porcentaje
     GO
@@ -13,18 +22,10 @@ END
 
 GO
 
---CREACION ESQUEMA --
-IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
-BEGIN
-EXECUTE('CREATE SCHEMA Dr0p')
-END
-
-
 --STORED PROCEDURE PARA BORRADO DE TABLAS --
 EXEC sp_MSforeachtable
   @command1 = 'DROP TABLE ?',
   @whereand = 'AND SCHEMA_NAME(schema_id) = ''Dr0p'' '
-
 
 --CREACION DE TABLAS --
 
