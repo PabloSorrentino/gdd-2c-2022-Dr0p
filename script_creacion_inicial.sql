@@ -1,17 +1,71 @@
 USE [GD2C2022]
 GO
 
+IF EXISTS (SELECT 1 FROM SYS.OBJECTS WHERE schema_id = SCHEMA_ID('Dr0p'))
+BEGIN
+--------------------------------------  E L I M I N A R   FUNCTIONS  --------------------------------------
+	DECLARE @SQL_FN NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_FN += N'
+	DROP FUNCTION Dr0p.' + name  + ';' 
+	FROM sys.objects WHERE type = 'FN' 
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_FN)
+--------------------------------------  E L I M I N A R   S P  --------------------------------------
+	DECLARE @SQL_SP NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_SP += N'
+	DROP PROCEDURE Dr0p.' + name  + ';' 
+	FROM sys.objects WHERE type = 'P' 
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_SP)
+
+--------------------------------------  E L I M I N A R   F K  --------------------------------------
+	DECLARE @SQL_FK NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_FK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
+	FROM SYS.OBJECTS
+	WHERE TYPE_DESC LIKE '%CONSTRAINT'
+	AND type = 'F'
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_FK)
+--------------------------------------  E L I M I N A R   P K  --------------------------------------
+	DECLARE @SQL_PK NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_PK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
+	FROM SYS.OBJECTS
+	WHERE TYPE_DESC LIKE '%CONSTRAINT'
+	AND type = 'PK'
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_PK)
+----------------------------------------- D R O P   T A B L E S -------------------------------------
+	DECLARE @SQL2 NVARCHAR(MAX) = N'';
+
+	SELECT @SQL2 += N'
+	DROP TABLE Dr0p.' + TABLE_NAME + ';' 
+	FROM INFORMATION_SCHEMA.TABLES
+	WHERE TABLE_SCHEMA = 'Dr0p'
+	AND TABLE_TYPE = 'BASE TABLE'
+
+	EXECUTE(@SQL2)
+
+----------------------------------------- D R O P   S C H E M A -------------------------------------
+	DROP SCHEMA Dr0p
+END
+GO
+
+
 --CREACION ESQUEMA --
 IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
 BEGIN
 EXECUTE('CREATE SCHEMA Dr0p')
 END
-GO
-
---STORED PROCEDURE PARA BORRADO DE TABLAS --
-EXEC sp_MSforeachtable
-  @command1 = 'DROP TABLE ?',
-  @whereand = 'AND SCHEMA_NAME(schema_id) = ''Dr0p'' '
 GO
 
 
@@ -29,16 +83,12 @@ GO
 
 --	Localidad
 CREATE TABLE [Dr0p].[Localidades](
-                                     id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY ,
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY ,
     nombre NVARCHAR(255),
-    codigo_postal DECIMAL(18,0)
-    )
+    codigo_postal DECIMAL(18,0),
+	provincia_nombre NVARCHAR(255)
+)
 
-
---	Provincia
-CREATE TABLE [Dr0p].[Provincias](
-    nombre NVARCHAR(255) PRIMARY KEY
-    )
 
 --	Proovedores
 CREATE TABLE [Dr0p].[Proveedores](
@@ -46,9 +96,16 @@ CREATE TABLE [Dr0p].[Proveedores](
     razon_social NVARCHAR(50),
     mail NVARCHAR(50),
     domicilio NVARCHAR(50),
-    localidad DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Localidades(id),
-    provincia NVARCHAR(255)	FOREIGN KEY REFERENCES Dr0p.Provincias(nombre)
+    localidad_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Localidades(id)
     )
+
+
+-- Localidades-Proveedores
+CREATE TABLE [Dr0p].[Localidades_Proveedores](
+	proveedor_cuit NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.[Proveedores](cuit),
+    localidad_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Localidades(id),
+	PRIMARY KEY(proveedor_cuit, localidad_id)
+)
 
 --Categorias
 CREATE TABLE [Dr0p].[Categorias] (
@@ -84,8 +141,9 @@ CREATE TABLE [Dr0p].[Variantes](
 
 -- Medios de envio
 CREATE TABLE [Dr0p].[Medios_de_envio](
-                                         id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-    nombre NVARCHAR(255)
+	id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(255),
+	medio_envio_precio decimal(18,2)
     )
 
 -- Envios Ventas
@@ -97,12 +155,12 @@ CREATE TABLE [Dr0p].[Envios_Ventas](
 
 --Medios de envio - localidad
 CREATE TABLE [Dr0p].[Medios_de_envio_Localidad](
-                                                   id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
     localidad_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
     importe DECIMAL(18,2),
-    tiempo_estimado DECIMAL(18,0)
-    )
+    tiempo_estimado DECIMAL(18,0),
+	PRIMARY KEY( medio_envio_id, localidad_id)
+)
 
 
 -- Canales de venta
@@ -123,7 +181,7 @@ CREATE TABLE [Dr0p].[Clientes](
     fecha_nacimiento DATE,
     direccion NVARCHAR(255),
     localidad DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Localidades(id),
-    provincia NVARCHAR(255) FOREIGN KEY REFERENCES [Dr0p].Provincias(nombre)
+    provincia_nombre NVARCHAR(255)
     )
 
 --Descuentos tipo
@@ -223,45 +281,73 @@ CREATE TABLE [Dr0p].[Descuentos_Ventas](
     venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
     importe_descuento_venta DECIMAL(18,2)
     )
-
+GO
 
     --INSERCION DE DATOS A TABLAS --
 
 --Localidad
-    INSERT INTO [Dr0p].[Localidades](
-                                        nombre,
-                                        codigo_postal
-                                    )
-SELECT DISTINCT PROVEEDOR_LOCALIDAD, PROVEEDOR_CODIGO_POSTAL
-FROM [gd_esquema].[Maestra]
-WHERE PROVEEDOR_LOCALIDAD IS NOT NULL
-  AND PROVEEDOR_CODIGO_POSTAL IS NOT NULL
-
-
---Provincia
-INSERT INTO [Dr0p].[Provincias](
-    nombre
+CREATE PROCEDURE Dr0p.MIGRACION_LOCALIDADES 
+AS
+BEGIN
+INSERT INTO Dr0p.Localidades(
+	nombre,
+    codigo_postal,
+	provincia_nombre
 )
-SELECT DISTINCT PROVEEDOR_PROVINCIA
-FROM [gd_esquema].[Maestra]
-WHERE PROVEEDOR_PROVINCIA IS NOT NULL
+SELECT DISTINCT 
+	M.CLIENTE_LOCALIDAD,
+	M.CLIENTE_CODIGO_POSTAL,
+	M.CLIENTE_PROVINCIA
+FROM 
+	gd_esquema.Maestra M	
 
+
+INSERT INTO Dr0p.Localidades(
+	nombre,
+    codigo_postal,
+	provincia_nombre
+)
+SELECT DISTINCT 
+	M.PROVEEDOR_LOCALIDAD,
+	M.PROVEEDOR_CODIGO_POSTAL,
+	M.PROVEEDOR_PROVINCIA
+FROM 
+	gd_esquema.Maestra M
+
+END
+GO
+
+EXEC Dr0p.MIGRACION_LOCALIDADES
+GO
 
 --Proovedores
 INSERT INTO [Dr0p].[Proveedores](
     cuit,
     razon_social,
     mail,
-    domicilio,
-    localidad,
-    provincia
+    domicilio
 )
-SELECT DISTINCT PROVEEDOR_CUIT, PROVEEDOR_RAZON_SOCIAL,
-                PROVEEDOR_MAIL, PROVEEDOR_DOMICILIO,
-                (SELECT L.id FROM [Dr0p].[Localidades] L WHERE l.codigo_postal = m.PROVEEDOR_CODIGO_POSTAL  AND l.nombre = m.PROVEEDOR_LOCALIDAD )
-                                                             , PROVEEDOR_PROVINCIA
+SELECT DISTINCT PROVEEDOR_CUIT, 
+				PROVEEDOR_RAZON_SOCIAL,
+                PROVEEDOR_MAIL, 
+				PROVEEDOR_DOMICILIO
 FROM [gd_esquema].[Maestra] M
-WHERE PROVEEDOR_CUIT IS NOT NULL;
+WHERE PROVEEDOR_CUIT IS NOT NULL 
+
+-- Localidades - Proovedores
+INSERT INTO [Dr0p].[Localidades_Proveedores](
+   proveedor_cuit,
+   localidad_id
+)
+SELECT DISTINCT PROVEEDOR_CUIT, 
+                L.id
+FROM 
+	[gd_esquema].[Maestra] M
+	JOIN [Dr0p].[Localidades] L
+ON 
+	L.codigo_postal = M.PROVEEDOR_CODIGO_POSTAL AND L.nombre = M.PROVEEDOR_LOCALIDAD
+WHERE 
+	PROVEEDOR_CUIT IS NOT NULL 
 
 
 --Categorias
@@ -339,11 +425,16 @@ GROUP BY
 
 -- Medios de envio
 INSERT INTO [Dr0p].[Medios_de_envio](
-    nombre
+    nombre,
+	medio_envio_precio
 )
-SELECT DISTINCT VENTA_MEDIO_ENVIO
-FROM [gd_esquema].[Maestra]
-WHERE VENTA_MEDIO_ENVIO IS NOT NULL
+SELECT DISTINCT 
+	VENTA_MEDIO_ENVIO
+	,VENTA_MEDIO_PAGO_COSTO
+FROM 
+	[gd_esquema].[Maestra]
+WHERE 
+	VENTA_MEDIO_ENVIO IS NOT NULL
 
 
 -- Envios Ventas
@@ -386,8 +477,7 @@ INSERT INTO [Dr0p].[Clientes](
     mail,
     fecha_nacimiento,
     direccion,
-    localidad,
-    provincia
+    localidad
 )
 SELECT DISTINCT
     M.CLIENTE_DNI,
@@ -397,12 +487,15 @@ SELECT DISTINCT
     M.CLIENTE_MAIL,
     M.CLIENTE_FECHA_NAC,
     M.CLIENTE_DIRECCION,
-    (SELECT L.id FROM [Dr0p].[Localidades] L WHERE l.codigo_postal = m.CLIENTE_CODIGO_POSTAL AND l.nombre = m.CLIENTE_LOCALIDAD ),
-    M.CLIENTE_PROVINCIA
+    L.id
 FROM
     gd_esquema.Maestra M
+JOIN
+	Dr0p.Localidades L
+ON
+	M.CLIENTE_LOCALIDAD = L.nombre
 WHERE
-    M.CLIENTE_DNI IS NOT NULL
+    M.CLIENTE_DNI IS NOT NULL AND M.CLIENTE_LOCALIDAD IS NOT NULL
 
 -- Cupones
 INSERT INTO [Dr0p].[Cupones](
@@ -592,4 +685,27 @@ SELECT DISTINCT
 FROM [gd_esquema].[Maestra] M
 WHERE M.VENTA_CODIGO IS NOT NULL AND M.VENTA_MEDIO_PAGO IS NOT NULL
 
+
+--Medios de envio - localidad
+INSERT INTO [Dr0p].[Medios_de_envio_Localidad](
+    medio_envio_id,
+    localidad_id,
+    importe,
+    tiempo_estimado
+)
+SELECT
+	ME.id,
+	L.id,
+	ME.medio_envio_precio,
+	null	
+FROM
+	Dr0p.Localidades L
+INNER JOIN 
+	Dr0p.Medios_de_envio_Localidad ML
+ON
+	L.id = ML.localidad_id
+INNER JOIN
+	Dr0p.Medios_de_envio ME
+ON
+	ML.medio_envio_id = ME.id
 GO
