@@ -581,3 +581,27 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
 WHERE HV.medio_envio_id IS NOT NULL
 GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
 GO
+
+
+-- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
+
+CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
+AS
+    SELECT
+		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HV.cantidad_productos) as total_vendido          
+    FROM
+        Dr0p.BI_Hechos_Ventas HV
+    INNER JOIN
+        Dr0p.BI_Rangos_etarios RE
+    ON
+        HV.rango_etario_id = RE.id
+    INNER JOIN
+        Dr0p.BI_Categorias_De_Productos CP
+    ON 
+        CP.id = HV.categoria_producto_id
+    INNER JOIN
+        Dr0p.BI_Tiempos T
+    ON 
+        HV.tiempo_id = T.id
+    GROUP BY T.mes, RE.descripcion, CP.detalle
+GO
