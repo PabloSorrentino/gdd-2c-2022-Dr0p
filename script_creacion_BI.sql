@@ -409,4 +409,48 @@ FROM
     Dr0p.Compras C
         JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
+
+
+-- BI Hechos ventas
+
+INSERT INTO [Dr0p].BI_Hechos_Ventas(
+    tiempo_id,
+    cliente_id,
+    rango_etario_id,
+    canal_venta_id,
+    producto_codigo,
+    medio_envio_id,
+    provincia_id,
+    medio_pago_id,
+    costo_medio_de_pago_aplicado,
+    porcentaje_descuento_medio_pago_aplicado,
+    total_venta,
+    cantidad_productos
+)
+SELECT
+
+    (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
+    (SELECT id FROM Dr0p.BI_Clientes BICL WHERE BICL.dni = CL.dni AND BICL.apellido = CL.apellido AND BICL.nombre = CL.nombre) as cliente_id,
+    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE  BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)) as rango_etario,
+    (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
+    VP.producto_codigo,
+    (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = (SELECT nombre FROM Dr0p.Medios_de_envio ME WHERE ME.id= EV.medio_envio_id)) as medio_envio_id,
+    (SELECT provincia_nombre FROM Dr0p.Localidades L WHERE L.id = CL.localidad) as provincia_id,
+    (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = (SELECT tipo_medio FROM Dr0p.Medios_de_Pago MP WHERE MP.id= VMP.medio_de_pago_id)) as medio_pago_id,
+    VMP.costo_medio_pago_aplicado as costo_medio_de_pago_aplicado,
+    VMP.porcentaje_descuento_medio_pago_aplicado as porcentaje_descuento_medio_pago_aplicado,
+    VP.precio as total_venta,
+    VP.cantidad as cantidad_productos
+
+
+FROM
+    Dr0p.Ventas V
+        INNER JOIN Dr0p.Clientes CL ON CL.id = V.cliente_id
+        LEFT JOIN Dr0p.Canales_de_venta CV on CV.id = V.canal_venta_id
+        INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
+        LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
+        INNER JOIN Dr0p.Envios_Ventas EV ON EV.id = V.envio_id
+
+
+
 GO
