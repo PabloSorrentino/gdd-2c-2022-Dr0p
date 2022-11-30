@@ -562,3 +562,22 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
      Dr0p.BI_Medios_De_Pago MP ON MP.id = HV.medio_pago_id
 GROUP BY MP.tipo_medio, T.anio, T.mes
 GO
+
+/*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
+debe representar la cantidad de envíos realizados a cada provincia sobre
+total de envío mensuales*/
+CREATE VIEW [Dr0p].[BI_VIEW_ENVIOS_PROVINCIA_POR_MES]
+AS
+
+SELECT HV.provincia_id,
+       T.anio,
+       T.mes,
+       (COUNT(*) / (SELECT count(*) FROM [Dr0p].[BI_Hechos_Ventas] HV2 WHERE HV2.tiempo_id = HV.tiempo_id AND HV2.medio_envio_id IS NOT NULL))*100 as porcentaje_provincia
+
+FROM [Dr0p].[BI_Hechos_Ventas] HV
+         INNER JOIN
+     Dr0p.BI_Tiempos T
+     ON HV.tiempo_id = T.id
+WHERE HV.medio_envio_id IS NOT NULL
+GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
+GO
