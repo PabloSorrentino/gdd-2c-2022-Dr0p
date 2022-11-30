@@ -475,7 +475,7 @@ GO
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA] 
 AS
 	SELECT 
-		CV.descripcion AS CANAL_VENTA, T.mes as MES, SUM(HV.total_venta) AS TOTAL_VENDIDO
+		CV.descripcion AS CANAL_VENTA, T.mes as MES, (SUM(HV.total_venta) - SUM(HV.costo_medio_de_pago_aplicado) - SUM(HC.precio)) AS TOTAL_VENDIDO
 	FROM 
 		Dr0p.BI_Canales_De_Venta CV
 	INNER JOIN 
@@ -486,6 +486,10 @@ AS
 		Dr0p.BI_Tiempos T
 	ON 
 		HV.tiempo_id = T.id
+	INNER JOIN 
+		Dr0p.BI_Hechos_Compras HC
+	ON
+		HC.producto_codigo = HV.producto_codigo
 	GROUP BY 
 		T.mes, CV.descripcion 
 GO
