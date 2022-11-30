@@ -1,13 +1,65 @@
 USE [GD2C2022]
 GO
 
---CREACION ESQUEMA --
-IF NOT EXISTS ( SELECT * FROM sys.schemas WHERE name = 'Dr0p')
-    BEGIN
-        EXECUTE('CREATE SCHEMA Dr0p')
-    END
-GO
+IF EXISTS (SELECT 1 FROM SYS.OBJECTS WHERE schema_id = SCHEMA_ID('Dr0p'))
+BEGIN
 
+	--------------------------------------  E L I M I N A R   F K  --------------------------------------
+	DECLARE @SQL_FK NVARCHAR(MAX) = N'';
+	
+	SELECT @SQL_FK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
+	FROM SYS.OBJECTS
+	WHERE TYPE_DESC LIKE '%CONSTRAINT'
+	AND type = 'F'
+	AND schema_id = SCHEMA_ID('Dr0p')
+	
+	--PRINT @SQL_FK
+	EXECUTE(@SQL_FK)
+
+	--------------------------------------  E L I M I N A R   P K  --------------------------------------
+	DECLARE @SQL_PK NVARCHAR(MAX) = N'';
+	
+	SELECT @SQL_PK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
+	FROM SYS.OBJECTS
+	WHERE TYPE_DESC LIKE '%CONSTRAINT'
+	AND type = 'PK'
+	AND schema_id = SCHEMA_ID('Dr0p')
+	
+	--PRINT @SQL_PK
+	EXECUTE(@SQL_PK)
+
+	------------------------------------  D R O P    T A B L E S   -----------------------------------
+	DECLARE @SQL_DROP NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_DROP += N'
+	DROP TABLE Dr0p.' + TABLE_NAME + ';' 
+	FROM INFORMATION_SCHEMA.TABLES
+	WHERE TABLE_SCHEMA = 'Dr0p'
+	AND TABLE_TYPE = 'BASE TABLE'
+	AND TABLE_NAME LIKE 'BI[_]%'
+
+	--PRINT @SQL_DROP
+	EXECUTE(@SQL_DROP)
+
+
+
+	----------------------------------------- D R O P   V I E W  -------------------------------------
+	DECLARE @SQL_VIEW NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_VIEW += N'
+	DROP VIEW Dr0p.' + TABLE_NAME + ';' 
+	FROM INFORMATION_SCHEMA.TABLES
+	WHERE TABLE_SCHEMA = 'Dr0p'
+	AND TABLE_TYPE = 'VIEW'
+	AND TABLE_NAME LIKE 'BI[_]%'
+
+	--PRINT @SQL_VIEW
+	EXECUTE(@SQL_VIEW)
+
+END
+GO
 
 
 CREATE FUNCTION Dr0p.obtener_rango_etario (@edad int)
