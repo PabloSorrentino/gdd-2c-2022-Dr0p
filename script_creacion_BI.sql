@@ -543,3 +543,22 @@ FROM [Dr0p].BI_Hechos_Descuentos HD
 
 GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
 GO
+
+/*Total de Ingresos por cada medio de pago por mes, descontando los costos
+por medio de pago (en caso que aplique) y descuentos por medio de pago
+(en caso que aplique)*/
+CREATE VIEW [Dr0p].[BI_VIEW_INGRESOS_MENSUALES_POR_MEDIO_DE_PAGO]
+AS
+SELECT
+    MP.tipo_medio ,
+    T.mes,
+    T.anio,
+    SUM((HV.total_venta * HV.cantidad_productos) - HV.costo_medio_de_pago_aplicado - HV.porcentaje_descuento_medio_pago_aplicado) as total_ingresos
+FROM [Dr0p].[BI_Hechos_Ventas] HV
+         INNER JOIN
+     Dr0p.BI_Tiempos T
+     ON HV.tiempo_id = T.id
+         INNER JOIN
+     Dr0p.BI_Medios_De_Pago MP ON MP.id = HV.medio_pago_id
+GROUP BY MP.tipo_medio, T.anio, T.mes
+GO
