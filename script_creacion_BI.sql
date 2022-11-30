@@ -501,7 +501,7 @@ SELECT TOP 5
     T.anio,
     Dr0p.bi_calcular_rentabilidad(SUM(HV.total_venta * HV.cantidad_productos), SUM(HC.precio * HC.cantidad)) as rentabilidad
 FROM [Dr0p].[BI_Hechos_Ventas] HV
-         INNER JOIN
+    INNER JOIN
      Dr0p.BI_Tiempos T
      ON
              HV.tiempo_id = T.id
@@ -514,4 +514,28 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
 GROUP BY HV.producto_codigo, P.nombre, T.anio
 ORDER BY rentabilidad DESC
 
+GO
+
+
+/*Importe total en descuentos aplicados según su tipo de descuento, por
+canal de venta, por mes. Se entiende por tipo de descuento como los
+correspondientes a envío, medio de pago, cupones, etc)*/
+CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
+AS
+
+SELECT
+    DT.tipo,
+    CV.descripcion,
+    T.mes ,
+    T.anio,
+    SUM(total_descuento) as total_descuento_mensual
+FROM [Dr0p].BI_Hechos_Descuentos HD
+         INNER JOIN
+     Dr0p.BI_Tiempos T ON HD.tiempo_id = T.id
+         INNER JOIN
+     Dr0p.BI_Descuentos_Tipo DT ON DT.id = HD.descuento_tipo_id
+         INNER JOIN
+     Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
+
+GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
 GO
