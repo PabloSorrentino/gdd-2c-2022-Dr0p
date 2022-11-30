@@ -62,11 +62,13 @@ END
 GO
 
 
-CREATE FUNCTION Dr0p.obtener_rango_etario (@edad int)
+CREATE FUNCTION Dr0p.bi_obtener_rango_etario (@fecha_de_nacimiento date)
     RETURNS varchar(10)
 AS
 BEGIN
     DECLARE @returnvalue varchar(10);
+    DECLARE @edad int;
+    SELECT @edad = (CONVERT(int,CONVERT(char(8),GetDate(),112))-CONVERT(char(8),@fecha_de_nacimiento,112))/10000;
 
     IF (@edad < 25)
         BEGIN
