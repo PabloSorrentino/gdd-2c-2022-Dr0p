@@ -269,6 +269,8 @@ FROM
 
 
 -- Hechos --
+
+-- Descuentos --
 INSERT INTO [Dr0p].BI_Hechos_Descuentos(
     descuento_tipo_id,
     tiempo_id,
@@ -277,12 +279,60 @@ INSERT INTO [Dr0p].BI_Hechos_Descuentos(
 
 SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por envio') as descuento_tipo_id,
        (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
-       (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion),
+       (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) canal_de_venta_id,
        (select medio_envio_precio FROM [Dr0p].Medios_de_envio ME WHERE ME.id = EV.medio_envio_id) - EV.medio_envio_precio as total_descuento
 from [Dr0p].Ventas V
          INNER JOIN [Dr0p].Envios_Ventas EV on EV.id = V.envio_id
-         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canales_de_venta_id
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
 WHERE EV.medio_envio_precio = 0
+
+
+INSERT INTO [Dr0p].BI_Hechos_Descuentos(
+    descuento_tipo_id,
+    tiempo_id,
+    canales_de_venta_id,
+    total_descuento)
+
+SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por medio de pago') as descuento_tipo_id,
+       (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
+       (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
+       VMP.PORCENTAJE_DESCUENTO_MEDIO_PAGO_APLICADO as descuento
+from [Dr0p].Ventas V
+         INNER JOIN [Dr0p].Ventas_Medios_De_Pago VMP on VMP.venta_codigo = V.codigo
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
+WHERE VMP.PORCENTAJE_DESCUENTO_MEDIO_PAGO_APLICADO <> 0
+
+
+INSERT INTO [Dr0p].BI_Hechos_Descuentos(
+    descuento_tipo_id,
+    tiempo_id,
+    canales_de_venta_id,
+    total_descuento)
+
+SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por cupon') as descuento_tipo_id,
+       (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
+       (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
+       VC.importe as descuento
+from [Dr0p].Ventas V
+         INNER JOIN [Dr0p].Ventas_Cupones VC on VC.venta_codigo = V.codigo
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
+WHERE VC.importe IS NOT NULL
+
+INSERT INTO [Dr0p].BI_Hechos_Descuentos(
+    descuento_tipo_id,
+    tiempo_id,
+    canales_de_venta_id,
+    total_descuento)
+
+SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por descuento especial') as descuento_tipo_id,
+       (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
+       (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
+       DV.importe_descuento_venta as descuento
+from [Dr0p].Ventas V
+         INNER JOIN [Dr0p].Descuentos_Ventas DV on DV.venta_codigo = V.codigo
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
+WHERE DV.importe_descuento_venta IS NOT NULL
+
 
 
 -- BI Hechos compras
