@@ -451,6 +451,25 @@ FROM
         LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
         INNER JOIN Dr0p.Envios_Ventas EV ON EV.id = V.envio_id
 
+GO
 
+--------------------- CREACION DE VISTAS --------------------- 
 
+-- Las ganancias mensuales de cada canal de venta.
+CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA] 
+AS
+	SELECT 
+		CV.descripcion AS CANAL_VENTA, T.mes as MES, SUM(HV.total_venta) AS TOTAL_VENDIDO
+	FROM 
+		Dr0p.BI_Canales_De_Venta CV
+	INNER JOIN 
+		Dr0p.BI_Hechos_Ventas HV
+	ON 
+		CV.id = HV.canal_venta_id
+	INNER JOIN 
+		Dr0p.BI_Tiempos T
+	ON 
+		HV.tiempo_id = T.id
+	GROUP BY 
+		T.mes, CV.descripcion 
 GO
