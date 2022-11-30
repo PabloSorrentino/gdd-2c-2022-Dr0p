@@ -333,7 +333,7 @@ SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por env
        (select medio_envio_precio FROM [Dr0p].Medios_de_envio ME WHERE ME.id = EV.medio_envio_id) - EV.medio_envio_precio as total_descuento
 from [Dr0p].Ventas V
          INNER JOIN [Dr0p].Envios_Ventas EV on EV.id = V.envio_id
-         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canales_de_venta_id
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
 WHERE EV.medio_envio_precio = 0
 
 
