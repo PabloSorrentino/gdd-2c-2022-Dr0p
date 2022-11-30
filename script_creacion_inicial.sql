@@ -610,7 +610,7 @@ SELECT DISTINCT
     (SELECT TOP 1 id FROM Dr0p.Envios_Ventas E WHERE E.medio_envio_id =
                                                      (SELECT TOP 1 id FROM Dr0p.Medios_de_envio me WHERE me.nombre = M.VENTA_MEDIO_ENVIO)
                                                  AND E.medio_envio_precio = M.VENTA_ENVIO_PRECIO),
-    (SELECT TOP 1 id FROM Dr0p.Canales_de_venta C WHERE  C.descripcion = M.VENTA_CANAL),
+    (SELECT TOP 1 id FROM Dr0p.Canales_de_venta C WHERE  C.descripcion = M.VENTA_CANAL AND C.descripcion IS NOT NULL),
     ISNULL(VENTA_TOTAL, 0),
     VENTA_CANAL_COSTO
 FROM
