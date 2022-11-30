@@ -92,6 +92,19 @@ END
 
 GO
 
+CREATE FUNCTION Dr0p.bi_calcular_rentabilidad (@ingresos DECIMAL(18,2), @egresos DECIMAL(18,2))
+    RETURNS DECIMAL(5,2)
+AS
+BEGIN
+    DECLARE @returnvalue DECIMAL(5,2);
+    SET @returnvalue = ((@ingresos - @egresos) / @ingresos) * 100
+
+
+    RETURN @returnvalue;
+END
+
+GO
+
 
 --CREACION DE TABLAS --
 
@@ -475,4 +488,30 @@ AS
 		HV.tiempo_id = T.id
 	GROUP BY 
 		T.mes, CV.descripcion 
+GO
+
+
+-- Los 5 productos con mayor rentabilidad anual
+CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
+AS
+
+SELECT TOP 5
+    HV.producto_codigo,
+    P.nombre,
+    T.anio,
+    Dr0p.bi_calcular_rentabilidad(SUM(HV.total_venta * HV.cantidad_productos), SUM(HC.precio * HC.cantidad)) as rentabilidad
+FROM [Dr0p].[BI_Hechos_Ventas] HV
+         INNER JOIN
+     Dr0p.BI_Tiempos T
+     ON
+             HV.tiempo_id = T.id
+         INNER JOIN
+     Dr0p.BI_Productos P
+     ON
+             P.codigo = HV.producto_codigo
+         INNER JOIN
+     Dr0p.BI_Hechos_Compras HC on HC.producto_codigo = HV.producto_codigo AND HC.tiempo_id = HV.tiempo_id
+GROUP BY HV.producto_codigo, P.nombre, T.anio
+ORDER BY rentabilidad DESC
+
 GO
