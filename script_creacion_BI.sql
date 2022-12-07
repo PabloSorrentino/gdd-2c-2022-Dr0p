@@ -604,4 +604,6 @@ AS
     ON 
         HV.tiempo_id = T.id
     GROUP BY T.mes, RE.descripcion, CP.detalle
+	ORDER BY T.mes, rango_etario, CP.detalle ASC
+	OFFSET 0 ROWS
 GO
