@@ -442,7 +442,7 @@ INSERT INTO [Dr0p].[Envios_Ventas](
     medio_envio_id,
     medio_envio_precio
 )
-SELECT
+SELECT DISTINCT
     (SELECT TOP 1 id FROM [Dr0p].[Medios_de_envio] me WHERE me.nombre = VENTA_MEDIO_ENVIO),
     VENTA_ENVIO_PRECIO
 FROM [gd_esquema].[Maestra]
