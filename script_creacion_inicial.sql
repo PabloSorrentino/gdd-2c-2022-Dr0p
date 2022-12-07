@@ -156,7 +156,7 @@ CREATE TABLE [Dr0p].[Envios_Ventas](
 --Medios de envio - localidad
 CREATE TABLE [Dr0p].[Medios_de_envio_Localidad](
     medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
-    localidad_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
+    localidad_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Localidades](id),
     importe DECIMAL(18,2),
     tiempo_estimado DECIMAL(18,0),
 	PRIMARY KEY( medio_envio_id, localidad_id)
@@ -687,25 +687,19 @@ WHERE M.VENTA_CODIGO IS NOT NULL AND M.VENTA_MEDIO_PAGO IS NOT NULL
 
 
 --Medios de envio - localidad
-INSERT INTO [Dr0p].[Medios_de_envio_Localidad](
+INSERT INTO [Dr0p].[Medios_de_envio_Localidad] (
     medio_envio_id,
     localidad_id,
     importe,
     tiempo_estimado
 )
-SELECT
-	ME.id,
-	L.id,
-	ME.medio_envio_precio,
-	null	
-FROM
-	Dr0p.Localidades L
-INNER JOIN 
-	Dr0p.Medios_de_envio_Localidad ML
-ON
-	L.id = ML.localidad_id
-INNER JOIN
-	Dr0p.Medios_de_envio ME
-ON
-	ML.medio_envio_id = ME.id
-GO
+SELECT DISTINCT
+    ME.id as medio_de_envio,
+    L.id as localidad,
+    0,
+    NULL
+FROM [gd_esquema].[Maestra] M
+         INNER JOIN Dr0p.Localidades L ON
+            L.nombre = M.CLIENTE_LOCALIDAD AND L.codigo_postal = M.CLIENTE_CODIGO_POSTAL AND L.provincia_nombre = M.CLIENTE_PROVINCIA
+         INNER JOIN Dr0p.Medios_de_envio ME ON ME.nombre= M.VENTA_MEDIO_ENVIO
+WHERE M.VENTA_MEDIO_ENVIO IS NOT NULL
