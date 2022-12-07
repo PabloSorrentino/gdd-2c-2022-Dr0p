@@ -180,9 +180,8 @@ CREATE TABLE [Dr0p].[Clientes](
     mail NVARCHAR(255),
     fecha_nacimiento DATE,
     direccion NVARCHAR(255),
-    localidad DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Localidades(id),
-    provincia_nombre NVARCHAR(255)
-    )
+    localidad DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].Localidades(id)
+ )
 
 --Descuentos tipo
 CREATE TABLE[Dr0p].[Descuentos_Tipo](
@@ -294,26 +293,25 @@ INSERT INTO Dr0p.Localidades(
     codigo_postal,
 	provincia_nombre
 )
-SELECT DISTINCT 
+(SELECT DISTINCT 
 	M.CLIENTE_LOCALIDAD,
 	M.CLIENTE_CODIGO_POSTAL,
 	M.CLIENTE_PROVINCIA
 FROM 
 	gd_esquema.Maestra M	
-
-
-INSERT INTO Dr0p.Localidades(
-	nombre,
-    codigo_postal,
-	provincia_nombre
-)
+WHERE
+	M.CLIENTE_LOCALIDAD IS NOT NULL)
+UNION
+(
 SELECT DISTINCT 
 	M.PROVEEDOR_LOCALIDAD,
 	M.PROVEEDOR_CODIGO_POSTAL,
 	M.PROVEEDOR_PROVINCIA
 FROM 
 	gd_esquema.Maestra M
-
+WHERE
+	M.PROVEEDOR_LOCALIDAD IS NOT NULL
+)
 END
 GO
 
@@ -491,7 +489,7 @@ FROM
 JOIN
 	Dr0p.Localidades L
 ON
-	M.CLIENTE_LOCALIDAD = L.nombre
+	M.CLIENTE_LOCALIDAD = L.nombre AND M.CLIENTE_CODIGO_POSTAL = L.codigo_postal
 WHERE
     M.CLIENTE_DNI IS NOT NULL AND M.CLIENTE_LOCALIDAD IS NOT NULL
 
