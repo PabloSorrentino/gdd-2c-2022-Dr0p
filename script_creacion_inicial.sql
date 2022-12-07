@@ -638,12 +638,13 @@ INSERT INTO Dr0p.Ventas_Cupones(
     venta_codigo,
     cupon_id
 )
-SELECT
+SELECT DISTINCT
     VENTA_CUPON_IMPORTE,
     (SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO),
     (SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
 FROM
     [gd_esquema].[Maestra] M
+WHERE M.VENTA_CUPON_CODIGO IS NOT NULL AND M.VENTA_CUPON_CODIGO IS NOT NULL
 
 --Ventas-Productos
 
