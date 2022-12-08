@@ -625,7 +625,7 @@ INSERT INTO Dr0p.Ventas_Cupones(
 )
 SELECT DISTINCT
     VENTA_CUPON_IMPORTE,
-    (SELECT V.codigo FROM Dr0p.Ventas V WHERE V.codigo = M.VENTA_CODIGO),
+    M.VENTA_CODIGO,
     (SELECT c.id FROM Dr0p.Cupones C WHERE C.codigo = M.VENTA_CUPON_CODIGO)
 FROM
     [gd_esquema].[Maestra] M
@@ -658,16 +658,19 @@ INSERT INTO [Dr0p].[Ventas_Medios_De_Pago](
     venta_codigo,
     medio_de_pago_id
 )
-SELECT DISTINCT
-    VENTA_MEDIO_PAGO_COSTO,
-    CASE
-        WHEN (M.VENTA_DESCUENTO_CONCEPTO = M.VENTA_MEDIO_PAGO) THEN (SELECT Dr0p.calcular_porcentaje(M.VENTA_TOTAL, M.VENTA_DESCUENTO_IMPORTE))
-        ELSE 0
-        END,
-    VENTA_CODIGO,
-    (SELECT TOP 1 id FROM [Dr0p].[Medios_De_Pago] MP WHERE MP.tipo_medio = M.VENTA_MEDIO_PAGO)
-FROM [gd_esquema].[Maestra] M
-WHERE M.VENTA_CODIGO IS NOT NULL AND M.VENTA_MEDIO_PAGO IS NOT NULL
+  SELECT DISTINCT 
+	VENTA_MEDIO_PAGO_COSTO,
+	MP.porcentaje_descuento_venta,
+	VENTA_CODIGO,
+	MP.id
+  FROM 
+	[GD2C2022].gd_esquema.Maestra M
+  JOIN 
+	[GD2C2022].Dr0p.Medios_De_Pago MP
+  ON 
+	M.VENTA_MEDIO_PAGO = MP.tipo_medio
+  WHERE 
+	VENTA_MEDIO_PAGO IS NOT NULL 
 
 
 --Medios de envio - localidad
