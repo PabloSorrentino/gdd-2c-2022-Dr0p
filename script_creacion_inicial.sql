@@ -146,13 +146,6 @@ CREATE TABLE [Dr0p].[Medios_de_envio](
 	medio_envio_precio decimal(18,2)
     )
 
--- Envios Ventas
-CREATE TABLE [Dr0p].[Envios_Ventas](
-                                       id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-    medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
-    medio_envio_precio DECIMAL(18,2)
-    )
-
 --Medios de envio - localidad
 CREATE TABLE [Dr0p].[Medios_de_envio_Localidad](
     medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
@@ -239,7 +232,6 @@ CREATE TABLE [Dr0p].[Ventas](
                                 codigo DECIMAL(19,0) PRIMARY KEY,
     fecha DATE,
     cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Clientes(id),
-    envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Envios_Ventas(id),
     canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.Canales_de_venta(id),
     total DECIMAL(18,2) NOT NULL,
     costo_canal_venta DECIMAL(18,2)
@@ -280,6 +272,16 @@ CREATE TABLE [Dr0p].[Descuentos_Ventas](
     venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
     importe_descuento_venta DECIMAL(18,2)
     )
+
+	
+-- Envios Ventas
+CREATE TABLE [Dr0p].[Envios_Ventas](
+                                       id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+									   venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES [Dr0p].[Ventas](codigo),
+    medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES [Dr0p].[Medios_de_envio](id),
+    medio_envio_precio DECIMAL(18,2)
+    )
+
 GO
 
     --INSERCION DE DATOS A TABLAS --
@@ -435,17 +437,6 @@ WHERE
 	VENTA_MEDIO_ENVIO IS NOT NULL
 
 
--- Envios Ventas
-INSERT INTO [Dr0p].[Envios_Ventas](
-    medio_envio_id,
-    medio_envio_precio
-)
-SELECT DISTINCT
-    (SELECT TOP 1 id FROM [Dr0p].[Medios_de_envio] me WHERE me.nombre = VENTA_MEDIO_ENVIO),
-    VENTA_ENVIO_PRECIO
-FROM [gd_esquema].[Maestra]
-WHERE VENTA_MEDIO_ENVIO IS NOT NULL
-
 -- Canales de venta
 INSERT INTO [Dr0p].[Canales_de_venta](
     descripcion,
@@ -593,7 +584,6 @@ INSERT INTO [Dr0p].[Ventas](
     codigo,
     fecha,
     cliente_id,
-    envio_id,
     canal_venta_id,
     total,
     costo_canal_venta
@@ -603,9 +593,6 @@ SELECT DISTINCT
     VENTA_FECHA,
     (SELECT TOP 1 id FROM Dr0p.Clientes C WHERE
             C.dni = M.CLIENTE_DNI AND C.apellido = M.CLIENTE_APELLIDO AND C.nombre = M.CLIENTE_NOMBRE),
-    (SELECT TOP 1 id FROM Dr0p.Envios_Ventas E WHERE E.medio_envio_id =
-                                                     (SELECT TOP 1 id FROM Dr0p.Medios_de_envio me WHERE me.nombre = M.VENTA_MEDIO_ENVIO)
-                                                 AND E.medio_envio_precio = M.VENTA_ENVIO_PRECIO),
     (SELECT TOP 1 id FROM Dr0p.Canales_de_venta C WHERE  C.descripcion = M.VENTA_CANAL AND C.descripcion IS NOT NULL),
     ISNULL(VENTA_TOTAL, 0),
     VENTA_CANAL_COSTO
@@ -700,3 +687,22 @@ FROM [gd_esquema].[Maestra] M
             L.nombre = M.CLIENTE_LOCALIDAD AND L.codigo_postal = M.CLIENTE_CODIGO_POSTAL AND L.provincia_nombre = M.CLIENTE_PROVINCIA
          INNER JOIN Dr0p.Medios_de_envio ME ON ME.nombre= M.VENTA_MEDIO_ENVIO
 WHERE M.VENTA_MEDIO_ENVIO IS NOT NULL
+
+-- Envios Ventas
+INSERT INTO [Dr0p].[Envios_Ventas](
+	venta_codigo,
+    medio_envio_id,
+    medio_envio_precio
+)
+SELECT DISTINCT  
+	VENTA_CODIGO, 
+	ME.id,
+	VENTA_ENVIO_PRECIO
+  FROM 
+	[GD2C2022].[gd_esquema].[Maestra] 
+  INNER JOIN 
+	[GD2C2022].DR0p.Medios_de_envio ME
+  ON 
+	VENTA_MEDIO_ENVIO = ME.nombre
+  WHERE 
+	VENTA_CODIGO IS NOT NULL and VENTA_MEDIO_ENVIO is not null
