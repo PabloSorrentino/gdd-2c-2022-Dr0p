@@ -461,7 +461,8 @@ SELECT
     (SELECT provincia_nombre FROM Dr0p.Localidades L WHERE L.id = CL.localidad) as provincia_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = (SELECT tipo_medio FROM Dr0p.Medios_de_Pago MP WHERE MP.id= VMP.medio_de_pago_id)) as medio_pago_id,
     VMP.costo_medio_pago_aplicado as costo_medio_de_pago_aplicado,
-    VMP.porcentaje_descuento_medio_pago_aplicado as porcentaje_descuento_medio_pago_aplicado,
+    ISNULL((SELECT DV.importe_descuento_venta FROM Dr0p.Descuentos_Ventas DV WHERE DV.venta_codigo = V.codigo AND DV.concepto <> 'Otros') , 0)
+        as descuento_medio_pago_aplicado,
     VP.precio as total_venta,
     VP.cantidad as cantidad_productos
 
