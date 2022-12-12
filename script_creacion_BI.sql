@@ -262,7 +262,6 @@ FROM [Dr0p].Ventas V
          INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
 
 GROUP BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
-ORDER BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento)
 
 -- BI Tiempos
 
