@@ -105,7 +105,6 @@ END
 
 GO
 
-
 --CREACION DE TABLAS --
 
 -- BI Provincias
@@ -432,8 +431,8 @@ INSERT INTO [Dr0p].BI_Hechos_Ventas(
 SELECT
 
     (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
-    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE  BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
-                                                  AND BIRE.anio = YEAR(V.fecha) AND BIRE.mes = MONTH(V.fecha) AND BIRE.producto_codigo = V.codigo) as rango_etario,
+    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
+                                                  AND BIRE.anio = YEAR(V.fecha) AND BIRE.mes = MONTH(V.fecha) AND BIRE.producto_codigo = VP.producto_codigo) as rango_etario,
     (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
     VP.producto_codigo,
     (SELECT id FROM Dr0p.BI_Categorias_De_Productos BIME WHERE BIME.detalle = (SELECT detalle FROM Dr0p.Categorias CAT WHERE CAT.id= P.categoria)) as categoria_id,
@@ -449,6 +448,7 @@ SELECT
 FROM
     Dr0p.Ventas V
         LEFT JOIN Dr0p.Canales_de_venta CV on CV.id = V.canal_venta_id
+        INNER JOIN Dr0p.Clientes CL ON CL.id = V.cliente_id
         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
         INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
         LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
@@ -456,7 +456,7 @@ FROM
 
 GO
 
---------------------- CREACION DE VISTAS --------------------- 
+--------------------- CREACION DE VISTAS ---------------------
 
 -- Las ganancias mensuales de cada canal de venta.
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
@@ -575,7 +575,7 @@ GO
 CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
 AS
     SELECT
-		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HV.cantidad_productos) as total_vendido          
+		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HV.cantidad_productos) as total_vendido
     FROM
         Dr0p.BI_Hechos_Ventas HV
     INNER JOIN
@@ -584,11 +584,11 @@ AS
         HV.rango_etario_id = RE.id
     INNER JOIN
         Dr0p.BI_Categorias_De_Productos CP
-    ON 
+    ON
         CP.id = HV.categoria_producto_id
     INNER JOIN
         Dr0p.BI_Tiempos T
-    ON 
+    ON
         HV.tiempo_id = T.id
     GROUP BY T.mes, RE.descripcion, CP.detalle
 	ORDER BY T.mes, rango_etario, CP.detalle ASC
