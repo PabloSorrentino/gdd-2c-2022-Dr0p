@@ -113,92 +113,85 @@ CREATE TABLE [Dr0p].[BI_Provincias](
     nombre NVARCHAR(255) PRIMARY KEY
 )
 
--- BI Clientes
-CREATE TABLE [Dr0p].[BI_Clientes](
-                                  id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-                                  dni DECIMAL(18,0),
-                                  apellido NVARCHAR(255),
-                                  nombre NVARCHAR(255),
-                                  telefono DECIMAL(18,0),
-                                  mail NVARCHAR(255),
-                                  fecha_nacimiento DATE,
-                                  direccion NVARCHAR(255)
-)
 
 -- BI Rangos Etarios
 CREATE TABLE [Dr0p].[BI_Rangos_etarios](
-                                id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-                                descripcion NVARCHAR(255),
+                                           id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                           descripcion NVARCHAR(255),
+                                           cantidad_total_vendido DECIMAL(18,0),
+                                           producto_codigo NVARCHAR(50),
+                                           anio DECIMAL(4,0),
+                                           mes DECIMAL(2,0)
 )
 
 -- BI Tiempos
 CREATE TABLE [Dr0p].[BI_Tiempos](
-                                 id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-                                 anio DECIMAL(4,0),
-                                 mes DECIMAL(2,0),
+                                    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                    anio DECIMAL(4,0),
+                                    mes DECIMAL(2,0),
 )
 
 
 --BI Medios de Pago
 CREATE TABLE [Dr0p].[BI_Medios_De_Pago](
-                                        id DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
-                                        tipo_medio NVARCHAR(255)
+                                           id DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
+                                           tipo_medio NVARCHAR(255)
 )
 
 -- BI Canales de venta
 
 CREATE TABLE [Dr0p].[BI_Canales_De_Venta](
-    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-    descripcion NVARCHAR(255),
-    costo DECIMAL(18,0)
+                                             id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                             descripcion NVARCHAR(255),
+                                             costo DECIMAL(18,0)
 )
 
 -- BI categorias de productos
 
 CREATE TABLE [Dr0p].[BI_Categorias_De_Productos](
-     id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-     detalle NVARCHAR(255)
+                                                    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                                    detalle NVARCHAR(255)
 )
 
 -- BI productos
 CREATE TABLE [Dr0p].[BI_Productos](
-    codigo NVARCHAR(50) PRIMARY KEY,
-    nombre NVARCHAR(50),
-    descripcion NVARCHAR(50),
-    material NVARCHAR(50),
-    marca NVARCHAR(255)
+                                      codigo NVARCHAR(50) PRIMARY KEY,
+                                      nombre NVARCHAR(50),
+                                      descripcion NVARCHAR(50),
+                                      material NVARCHAR(50),
+                                      marca NVARCHAR(255)
 )
 
 -- BI Medios de envio
 
 CREATE TABLE [Dr0p].[BI_Medios_De_Envio](
-    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-    nombre NVARCHAR(255)
+                                            id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                            nombre NVARCHAR(255)
 )
 
 -- BI Descuentos tipo ( tipo de descuento como los
 -- correspondientes a envío, medio de pago, cupones)
 
 CREATE TABLE [Dr0p].[BI_Descuentos_Tipo](
-    id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-    tipo NVARCHAR(255)
+                                            id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
+                                            tipo NVARCHAR(255)
 )
 
 --    BI Proovedores
 CREATE TABLE [Dr0p].[BI_Proveedores](
-    cuit NVARCHAR(255) PRIMARY KEY,
-    razon_social NVARCHAR(50),
-    mail NVARCHAR(50),
-    domicilio NVARCHAR(50)
+                                        cuit NVARCHAR(255) PRIMARY KEY,
+                                        razon_social NVARCHAR(50),
+                                        mail NVARCHAR(50),
+                                        domicilio NVARCHAR(50)
 )
 
 -- BI Hechos descuentos
 
 CREATE TABLE [Dr0p].[BI_Hechos_Descuentos](
-    descuento_tipo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Descuentos_Tipo(id),
-    tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-    canales_de_venta_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-    total_descuento DECIMAL(18,2)
+                                              descuento_tipo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Descuentos_Tipo(id),
+                                              tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                              canales_de_venta_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                              total_descuento DECIMAL(18,2)
 )
 
 -- Hechos Compras
@@ -214,19 +207,18 @@ CREATE TABLE [Dr0p].[BI_Hechos_Compras](
 
 --Hechos Ventas
 CREATE TABLE [Dr0p].[BI_Hechos_Ventas](
-                                tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-                                cliente_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Clientes(id),
-                                rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
-                                canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-                                producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-                                categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
-                                medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
-                                provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
-                                medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                costo_medio_de_pago_aplicado DECIMAL(18,2),
-                                porcentaje_descuento_medio_pago_aplicado DECIMAL(5,2),
-                                total_venta DECIMAL(18,2) NOT NULL,
-                                cantidad_productos DECIMAL(18,0)
+                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                          rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
+                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                          producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
+                                          categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
+                                          medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                          medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
+                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
+                                          porcentaje_descuento_medio_pago_aplicado DECIMAL(5,2),
+                                          total_venta DECIMAL(18,2) NOT NULL,
+                                          cantidad_productos DECIMAL(18,0)
 )
 --INSERCION DE DATOS A TABLAS --
 
@@ -241,42 +233,39 @@ FROM
     [Dr0p].Localidades
 WHERE provincia_nombre IS NOT NULL
 
--- BI Clientes
-INSERT INTO [Dr0p].BI_Clientes(dni, apellido, nombre, telefono, mail, fecha_nacimiento, direccion)
-SELECT DISTINCT dni, apellido, nombre, telefono, mail, fecha_nacimiento, direccion FROM [Dr0p].Clientes
 
 
 -- BI Rango Etario
 
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
-VALUES ('< 25')
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
-VALUES ('25 - 35')
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
-VALUES ('35 - 55')
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
-VALUES ('> 50')
+INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion, cantidad_total_vendido, producto_codigo, anio, mes)
+SELECT [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), SUM( VP.cantidad), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
+FROM [Dr0p].Ventas V
+         INNER JOIN [Dr0p].Clientes C ON V.cliente_id = C.id
+         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
+
+GROUP BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
+ORDER BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento)
 
 -- BI Tiempos
 
 INSERT INTO [Dr0p].BI_Tiempos(
-                              anio,
-                              mes
+    anio,
+    mes
 )
- (SELECT YEAR(fecha) as anio, MONTH(fecha) as mes
-            FROM [Dr0p].Ventas
-            UNION
-            SELECT YEAR(fecha) as anio, MONTH(fecha) as mes
-            FROM [Dr0p].Compras
- )
+    (SELECT YEAR(fecha) as anio, MONTH(fecha) as mes
+     FROM [Dr0p].Ventas
+     UNION
+     SELECT YEAR(fecha) as anio, MONTH(fecha) as mes
+     FROM [Dr0p].Compras
+    )
 
 -- BI Productos
 INSERT INTO [Dr0p].BI_Productos(
-                                codigo,
-                                nombre,
-                                descripcion,
-                                material,
-                                marca
+    codigo,
+    nombre,
+    descripcion,
+    material,
+    marca
 )
 SELECT  codigo,
         nombre,
@@ -296,7 +285,7 @@ INSERT INTO [Dr0p].BI_Medios_De_Pago(
 )
 SELECT tipo_medio
 FROM
-[Dr0p].Medios_De_Pago
+    [Dr0p].Medios_De_Pago
 
 -- BI Medios de envio
 INSERT INTO [Dr0p].BI_Medios_De_envio(
@@ -349,7 +338,7 @@ SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por env
        (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) canal_de_venta_id,
        (select medio_envio_precio FROM [Dr0p].Medios_de_envio ME WHERE ME.id = EV.medio_envio_id) - EV.medio_envio_precio as total_descuento
 from [Dr0p].Ventas V
-         INNER JOIN [Dr0p].Envios_Ventas EV on EV.id = V.envio_id
+         INNER JOIN [Dr0p].Envios_Ventas EV on EV.venta_codigo = V.codigo
          JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
 WHERE EV.medio_envio_precio = 0
 
@@ -428,7 +417,6 @@ FROM
 
 INSERT INTO [Dr0p].BI_Hechos_Ventas(
     tiempo_id,
-    cliente_id,
     rango_etario_id,
     canal_venta_id,
     producto_codigo,
@@ -444,8 +432,8 @@ INSERT INTO [Dr0p].BI_Hechos_Ventas(
 SELECT
 
     (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
-    (SELECT id FROM Dr0p.BI_Clientes BICL WHERE BICL.dni = CL.dni AND BICL.apellido = CL.apellido AND BICL.nombre = CL.nombre) as cliente_id,
-    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE  BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)) as rango_etario,
+    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE  BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
+                                                  AND BIRE.anio = YEAR(V.fecha) AND BIRE.mes = MONTH(V.fecha) AND BIRE.producto_codigo = V.codigo) as rango_etario,
     (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
     VP.producto_codigo,
     (SELECT id FROM Dr0p.BI_Categorias_De_Productos BIME WHERE BIME.detalle = (SELECT detalle FROM Dr0p.Categorias CAT WHERE CAT.id= P.categoria)) as categoria_id,
@@ -460,38 +448,37 @@ SELECT
 
 FROM
     Dr0p.Ventas V
-        INNER JOIN Dr0p.Clientes CL ON CL.id = V.cliente_id
         LEFT JOIN Dr0p.Canales_de_venta CV on CV.id = V.canal_venta_id
         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
         INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
         LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
-        INNER JOIN Dr0p.Envios_Ventas EV ON EV.id = V.envio_id
+        INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
 
 GO
 
 --------------------- CREACION DE VISTAS --------------------- 
 
 -- Las ganancias mensuales de cada canal de venta.
-CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA] 
+CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
-	SELECT 
-		CV.descripcion AS CANAL_VENTA, T.mes as MES, (SUM(HV.total_venta) - SUM(HV.costo_medio_de_pago_aplicado) - SUM(HC.precio)) AS TOTAL_VENDIDO
-	FROM 
-		Dr0p.BI_Canales_De_Venta CV
-	INNER JOIN 
-		Dr0p.BI_Hechos_Ventas HV
-	ON 
-		CV.id = HV.canal_venta_id
-	INNER JOIN 
-		Dr0p.BI_Tiempos T
-	ON 
-		HV.tiempo_id = T.id
-	INNER JOIN 
-		Dr0p.BI_Hechos_Compras HC
-	ON
-		HC.producto_codigo = HV.producto_codigo
-	GROUP BY 
-		T.mes, CV.descripcion 
+SELECT
+    CV.descripcion AS CANAL_VENTA, T.mes as MES, (SUM(HV.total_venta) - SUM(HV.costo_medio_de_pago_aplicado) - SUM(HC.precio)) AS TOTAL_VENDIDO
+FROM
+    Dr0p.BI_Canales_De_Venta CV
+        INNER JOIN
+    Dr0p.BI_Hechos_Ventas HV
+    ON
+            CV.id = HV.canal_venta_id
+        INNER JOIN
+    Dr0p.BI_Tiempos T
+    ON
+            HV.tiempo_id = T.id
+        INNER JOIN
+    Dr0p.BI_Hechos_Compras HC
+    ON
+            HC.producto_codigo = HV.producto_codigo
+GROUP BY
+    T.mes, CV.descripcion
 GO
 
 
@@ -505,7 +492,7 @@ SELECT TOP 5
     T.anio,
     Dr0p.bi_calcular_rentabilidad(SUM(HV.total_venta * HV.cantidad_productos), SUM(HC.precio * HC.cantidad)) as rentabilidad
 FROM [Dr0p].[BI_Hechos_Ventas] HV
-    INNER JOIN
+         INNER JOIN
      Dr0p.BI_Tiempos T
      ON
              HV.tiempo_id = T.id
@@ -584,7 +571,7 @@ GO
 
 
 -- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
-
+/*
 CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
 AS
     SELECT
@@ -607,3 +594,4 @@ AS
 	ORDER BY T.mes, rango_etario, CP.detalle ASC
 	OFFSET 0 ROWS
 GO
+*/
