@@ -153,7 +153,9 @@ CREATE TABLE [Dr0p].[BI_Tiempos](
 --BI Medios de Pago
 CREATE TABLE [Dr0p].[BI_Medios_De_Pago](
                                            id DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
-                                           tipo_medio NVARCHAR(255)
+                                           tipo_medio NVARCHAR(255),
+                                           descuento_medio_pago_aplicado DECIMAL(18,2),
+                                           costo_medio_pago_aplicado DECIMAL(18,2)
 )
 
 -- BI Canales de venta
@@ -233,8 +235,6 @@ CREATE TABLE [Dr0p].[BI_Hechos_Ventas](
                                           medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
                                           provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
                                           medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
-                                          porcentaje_descuento_medio_pago_aplicado DECIMAL(5,2),
                                           total_venta DECIMAL(18,2) NOT NULL,
                                           cantidad_productos DECIMAL(18,0)
 )
@@ -299,11 +299,18 @@ SELECT detalle FROM [Dr0p].Categorias
 
 -- BI Medios de pago
 INSERT INTO [Dr0p].BI_Medios_De_Pago(
-    tipo_medio
+    tipo_medio, descuento_medio_pago_aplicado , costo_medio_pago_aplicado
 )
-SELECT tipo_medio
+SELECT MP.tipo_medio,
+       ISNULL((SELECT DV.importe_descuento_venta FROM Dr0p.Descuentos_Ventas DV WHERE DV.venta_codigo = V.codigo AND DV.concepto <> 'Otros') , 0)
+                                     as descuento_medio_pago_aplicado,
+       VMP.costo_medio_pago_aplicado as costo_medio_de_pago_aplicado
+
 FROM
-    [Dr0p].Medios_De_Pago
+    [Dr0p].Ventas V
+        INNER JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
+        INNER JOIN Dr0p.Medios_De_Pago MP ON MP.id = VMP.medio_de_pago_id
+
 
 -- BI Medios de envio
 INSERT INTO [Dr0p].BI_Medios_De_envio(
@@ -444,8 +451,6 @@ INSERT INTO [Dr0p].BI_Hechos_Ventas(
     medio_envio_id,
     provincia_id,
     medio_pago_id,
-    costo_medio_de_pago_aplicado,
-    porcentaje_descuento_medio_pago_aplicado,
     total_venta,
     cantidad_productos
 )
@@ -460,9 +465,6 @@ SELECT
     (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = (SELECT nombre FROM Dr0p.Medios_de_envio ME WHERE ME.id= EV.medio_envio_id)) as medio_envio_id,
     (SELECT provincia_nombre FROM Dr0p.Localidades L WHERE L.id = CL.localidad) as provincia_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = (SELECT tipo_medio FROM Dr0p.Medios_de_Pago MP WHERE MP.id= VMP.medio_de_pago_id)) as medio_pago_id,
-    VMP.costo_medio_pago_aplicado as costo_medio_de_pago_aplicado,
-    ISNULL((SELECT DV.importe_descuento_venta FROM Dr0p.Descuentos_Ventas DV WHERE DV.venta_codigo = V.codigo AND DV.concepto <> 'Otros') , 0)
-        as descuento_medio_pago_aplicado,
     VP.precio as total_venta,
     VP.cantidad as cantidad_productos
 
