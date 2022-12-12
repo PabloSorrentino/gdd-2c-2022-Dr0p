@@ -251,7 +251,6 @@ CREATE TABLE [Dr0p].[Ventas_Productos](
 CREATE TABLE [Dr0p].[Ventas_Medios_De_Pago](
                                                id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
     costo_medio_pago_aplicado DECIMAL(18,2),
-    porcentaje_descuento_medio_pago_aplicado DECIMAL(5,2),
     venta_codigo DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Ventas(codigo),
     medio_de_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.Medios_de_Pago(id)
     )
@@ -654,13 +653,11 @@ WHERE M.VENTA_CODIGO IS NOT NULL AND M.PRODUCTO_CODIGO IS NOT NULL
 
 INSERT INTO [Dr0p].[Ventas_Medios_De_Pago](
     costo_medio_pago_aplicado,
-    porcentaje_descuento_medio_pago_aplicado,
     venta_codigo,
     medio_de_pago_id
 )
   SELECT DISTINCT 
 	VENTA_MEDIO_PAGO_COSTO,
-	MP.porcentaje_descuento_venta,
 	VENTA_CODIGO,
 	MP.id
   FROM 
@@ -709,3 +706,4 @@ SELECT DISTINCT
 	VENTA_MEDIO_ENVIO = ME.nombre
   WHERE 
 	VENTA_CODIGO IS NOT NULL and VENTA_MEDIO_ENVIO is not null
+
