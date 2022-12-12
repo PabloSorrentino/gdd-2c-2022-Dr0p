@@ -3,6 +3,25 @@ GO
 
 IF EXISTS (SELECT 1 FROM SYS.OBJECTS WHERE schema_id = SCHEMA_ID('Dr0p'))
 BEGIN
+	
+	--------------------------------------  E L I M I N A R   FUNCTIONS  --------------------------------------
+	DECLARE @SQL_FN NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_FN += N'
+	DROP FUNCTION Dr0p.' + name  + ';' 
+	FROM sys.objects WHERE type = 'FN' 
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_FN)
+--------------------------------------  E L I M I N A R   S P  --------------------------------------
+	DECLARE @SQL_SP NVARCHAR(MAX) = N'';
+
+	SELECT @SQL_SP += N'
+	DROP PROCEDURE Dr0p.' + name  + ';' 
+	FROM sys.objects WHERE type = 'P' 
+	AND schema_id = SCHEMA_ID('Dr0p')
+
+	EXECUTE(@SQL_SP)
 
 	--------------------------------------  E L I M I N A R   F K  --------------------------------------
 	DECLARE @SQL_FK NVARCHAR(MAX) = N'';
