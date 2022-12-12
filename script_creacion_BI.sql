@@ -370,11 +370,13 @@ INSERT INTO [Dr0p].BI_Hechos_Descuentos(
 SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por medio de pago') as descuento_tipo_id,
        (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
        (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
-       VMP.PORCENTAJE_DESCUENTO_MEDIO_PAGO_APLICADO as descuento
-from [Dr0p].Ventas V
-         INNER JOIN [Dr0p].Ventas_Medios_De_Pago VMP on VMP.venta_codigo = V.codigo
-         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
-WHERE VMP.PORCENTAJE_DESCUENTO_MEDIO_PAGO_APLICADO <> 0
+       DV.importe_descuento_venta as descuento
+    from [Dr0p].Ventas V
+         INNER JOIN [Dr0p].Descuentos_Ventas DV on DV.venta_codigo = V.codigo
+    JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
+WHERE DV.importe_descuento_venta IS NOT NULL AND DV.concepto <> 'Otros'
+
+
 
 
 INSERT INTO [Dr0p].BI_Hechos_Descuentos(
@@ -405,7 +407,7 @@ SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por des
 from [Dr0p].Ventas V
          INNER JOIN [Dr0p].Descuentos_Ventas DV on DV.venta_codigo = V.codigo
          JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
-WHERE DV.importe_descuento_venta IS NOT NULL
+WHERE DV.importe_descuento_venta IS NOT NULL AND DV.concepto <> 'Otros'
 
 
 
