@@ -135,11 +135,7 @@ CREATE TABLE [Dr0p].[BI_Provincias](
 -- BI Rangos Etarios
 CREATE TABLE [Dr0p].[BI_Rangos_etarios](
                                            id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-                                           descripcion NVARCHAR(255),
-                                           cantidad_total_vendido DECIMAL(18,0),
-                                           producto_codigo NVARCHAR(50),
-                                           anio DECIMAL(4,0),
-                                           mes DECIMAL(2,0)
+                                           descripcion NVARCHAR(255)
 )
 
 -- BI Tiempos
@@ -255,13 +251,10 @@ WHERE provincia_nombre IS NOT NULL
 
 -- BI Rango Etario
 
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion, cantidad_total_vendido, producto_codigo, anio, mes)
-SELECT [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), SUM( VP.cantidad), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
+INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
+SELECT DISTINCT [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento)
 FROM [Dr0p].Ventas V
          INNER JOIN [Dr0p].Clientes C ON V.cliente_id = C.id
-         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
-
-GROUP BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
 
 -- BI Tiempos
 
@@ -452,7 +445,7 @@ SELECT
 
     (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
     (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
-                                                  AND BIRE.anio = YEAR(V.fecha) AND BIRE.mes = MONTH(V.fecha) AND BIRE.producto_codigo = VP.producto_codigo) as rango_etario,
+                                                  ) as rango_etario,
     (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
     VP.producto_codigo,
     (SELECT id FROM Dr0p.BI_Categorias_De_Productos BIME WHERE BIME.detalle = (SELECT detalle FROM Dr0p.Categorias CAT WHERE CAT.id= P.categoria)) as categoria_id,
@@ -462,7 +455,7 @@ SELECT
     SUM (VMP.costo_medio_pago_aplicado) as costo_medio_de_pago_aplicado,
     SUM ( ISNULL(DV.importe_descuento_venta, 0) )
         as descuento_medio_pago_aplicado,
-    SUM ( VP.precio * VP.cantidad) as total_producto,
+    SUM ( V.total) as total,
     SUM ( VP.cantidad ) as cantidad_productos
 
 
