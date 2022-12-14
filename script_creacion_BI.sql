@@ -2,82 +2,82 @@ USE [GD2C2022]
 GO
 
 IF EXISTS (SELECT 1 FROM SYS.OBJECTS WHERE schema_id = SCHEMA_ID('Dr0p'))
-BEGIN
-	
-	--------------------------------------  E L I M I N A R   FUNCTIONS  --------------------------------------
-	DECLARE @SQL_FN NVARCHAR(MAX) = N'';
+    BEGIN
 
-	SELECT @SQL_FN += N'
-	DROP FUNCTION Dr0p.' + name  + ';' 
-	FROM sys.objects WHERE type = 'FN' 
-	AND schema_id = SCHEMA_ID('Dr0p')
+        --------------------------------------  E L I M I N A R   FUNCTIONS  --------------------------------------
+        DECLARE @SQL_FN NVARCHAR(MAX) = N'';
 
-	EXECUTE(@SQL_FN)
+        SELECT @SQL_FN += N'
+	DROP FUNCTION Dr0p.' + name  + ';'
+        FROM sys.objects WHERE type = 'FN'
+                           AND schema_id = SCHEMA_ID('Dr0p')
+
+        EXECUTE(@SQL_FN)
 --------------------------------------  E L I M I N A R   S P  --------------------------------------
-	DECLARE @SQL_SP NVARCHAR(MAX) = N'';
+        DECLARE @SQL_SP NVARCHAR(MAX) = N'';
 
-	SELECT @SQL_SP += N'
-	DROP PROCEDURE Dr0p.' + name  + ';' 
-	FROM sys.objects WHERE type = 'P' 
-	AND schema_id = SCHEMA_ID('Dr0p')
+        SELECT @SQL_SP += N'
+	DROP PROCEDURE Dr0p.' + name  + ';'
+        FROM sys.objects WHERE type = 'P'
+                           AND schema_id = SCHEMA_ID('Dr0p')
 
-	EXECUTE(@SQL_SP)
+        EXECUTE(@SQL_SP)
 
-	--------------------------------------  E L I M I N A R   F K  --------------------------------------
-	DECLARE @SQL_FK NVARCHAR(MAX) = N'';
-	
-	SELECT @SQL_FK += N'
-	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
-	FROM SYS.OBJECTS
-	WHERE TYPE_DESC LIKE '%CONSTRAINT'
-	AND type = 'F'
-	AND schema_id = SCHEMA_ID('Dr0p')
-	
-	--PRINT @SQL_FK
-	EXECUTE(@SQL_FK)
+        --------------------------------------  E L I M I N A R   F K  --------------------------------------
+        DECLARE @SQL_FK NVARCHAR(MAX) = N'';
 
-	--------------------------------------  E L I M I N A R   P K  --------------------------------------
-	DECLARE @SQL_PK NVARCHAR(MAX) = N'';
-	
-	SELECT @SQL_PK += N'
-	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';' 
-	FROM SYS.OBJECTS
-	WHERE TYPE_DESC LIKE '%CONSTRAINT'
-	AND type = 'PK'
-	AND schema_id = SCHEMA_ID('Dr0p')
-	
-	--PRINT @SQL_PK
-	EXECUTE(@SQL_PK)
+        SELECT @SQL_FK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';'
+        FROM SYS.OBJECTS
+        WHERE TYPE_DESC LIKE '%CONSTRAINT'
+          AND type = 'F'
+          AND schema_id = SCHEMA_ID('Dr0p')
 
-	------------------------------------  D R O P    T A B L E S   -----------------------------------
-	DECLARE @SQL_DROP NVARCHAR(MAX) = N'';
+        --PRINT @SQL_FK
+        EXECUTE(@SQL_FK)
 
-	SELECT @SQL_DROP += N'
-	DROP TABLE Dr0p.' + TABLE_NAME + ';' 
-	FROM INFORMATION_SCHEMA.TABLES
-	WHERE TABLE_SCHEMA = 'Dr0p'
-	AND TABLE_TYPE = 'BASE TABLE'
-	AND TABLE_NAME LIKE 'BI[_]%'
+        --------------------------------------  E L I M I N A R   P K  --------------------------------------
+        DECLARE @SQL_PK NVARCHAR(MAX) = N'';
 
-	--PRINT @SQL_DROP
-	EXECUTE(@SQL_DROP)
+        SELECT @SQL_PK += N'
+	ALTER TABLE Dr0p.' + OBJECT_NAME(PARENT_OBJECT_ID) + ' DROP CONSTRAINT ' + OBJECT_NAME(OBJECT_ID) + ';'
+        FROM SYS.OBJECTS
+        WHERE TYPE_DESC LIKE '%CONSTRAINT'
+          AND type = 'PK'
+          AND schema_id = SCHEMA_ID('Dr0p')
+
+        --PRINT @SQL_PK
+        EXECUTE(@SQL_PK)
+
+        ------------------------------------  D R O P    T A B L E S   -----------------------------------
+        DECLARE @SQL_DROP NVARCHAR(MAX) = N'';
+
+        SELECT @SQL_DROP += N'
+	DROP TABLE Dr0p.' + TABLE_NAME + ';'
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'Dr0p'
+          AND TABLE_TYPE = 'BASE TABLE'
+          AND TABLE_NAME LIKE 'BI[_]%'
+
+        --PRINT @SQL_DROP
+        EXECUTE(@SQL_DROP)
 
 
 
-	----------------------------------------- D R O P   V I E W  -------------------------------------
-	DECLARE @SQL_VIEW NVARCHAR(MAX) = N'';
+        ----------------------------------------- D R O P   V I E W  -------------------------------------
+        DECLARE @SQL_VIEW NVARCHAR(MAX) = N'';
 
-	SELECT @SQL_VIEW += N'
-	DROP VIEW Dr0p.' + TABLE_NAME + ';' 
-	FROM INFORMATION_SCHEMA.TABLES
-	WHERE TABLE_SCHEMA = 'Dr0p'
-	AND TABLE_TYPE = 'VIEW'
-	AND TABLE_NAME LIKE 'BI[_]%'
+        SELECT @SQL_VIEW += N'
+	DROP VIEW Dr0p.' + TABLE_NAME + ';'
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'Dr0p'
+          AND TABLE_TYPE = 'VIEW'
+          AND TABLE_NAME LIKE 'BI[_]%'
 
-	--PRINT @SQL_VIEW
-	EXECUTE(@SQL_VIEW)
+        --PRINT @SQL_VIEW
+        EXECUTE(@SQL_VIEW)
 
-END
+    END
 GO
 
 
@@ -135,11 +135,7 @@ CREATE TABLE [Dr0p].[BI_Provincias](
 -- BI Rangos Etarios
 CREATE TABLE [Dr0p].[BI_Rangos_etarios](
                                            id DECIMAL(18,0) IDENTITY(1,1) PRIMARY KEY,
-                                           descripcion NVARCHAR(255),
-                                           cantidad_total_vendido DECIMAL(18,0),
-                                           producto_codigo NVARCHAR(50),
-                                           anio DECIMAL(4,0),
-                                           mes DECIMAL(2,0)
+                                           descripcion NVARCHAR(255)
 )
 
 -- BI Tiempos
@@ -153,9 +149,7 @@ CREATE TABLE [Dr0p].[BI_Tiempos](
 --BI Medios de Pago
 CREATE TABLE [Dr0p].[BI_Medios_De_Pago](
                                            id DECIMAL(19,0) IDENTITY(1,1) PRIMARY KEY,
-                                           tipo_medio NVARCHAR(255),
-                                           descuento_medio_pago_aplicado DECIMAL(18,2),
-                                           costo_medio_pago_aplicado DECIMAL(18,2)
+                                           tipo_medio NVARCHAR(255)
 )
 
 -- BI Canales de venta
@@ -225,19 +219,30 @@ CREATE TABLE [Dr0p].[BI_Hechos_Compras](
 )
 
 
---Hechos Ventas
-CREATE TABLE [Dr0p].[BI_Hechos_Ventas](
+--Hechos Ventas Total
+CREATE TABLE [Dr0p].[BI_Hechos_Ventas_Total](
                                           tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-                                          rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
                                           canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-                                          producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-                                          categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
                                           medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
                                           provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
                                           medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                          total_venta DECIMAL(18,2) NOT NULL,
-                                          cantidad_productos DECIMAL(18,0)
+                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
+                                          descuento_medio_pago_aplicado DECIMAL(18,2),
+                                          total_venta DECIMAL(18,2) NOT NULL
 )
+
+--Hechos Venta x Producto
+
+ CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
+    tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+	rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
+    canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+	categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
+	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
+	total_valor_producto DECIMAL(18,2) NOT NULL,
+	cantidad_producto DECIMAL(18,0)
+)
+
 --INSERCION DE DATOS A TABLAS --
 
 
@@ -255,13 +260,10 @@ WHERE provincia_nombre IS NOT NULL
 
 -- BI Rango Etario
 
-INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion, cantidad_total_vendido, producto_codigo, anio, mes)
-SELECT [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), SUM( VP.cantidad), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
+INSERT INTO [Dr0p].BI_Rangos_etarios(descripcion)
+SELECT DISTINCT [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento)
 FROM [Dr0p].Ventas V
          INNER JOIN [Dr0p].Clientes C ON V.cliente_id = C.id
-         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
-
-GROUP BY [Dr0p].bi_obtener_rango_etario(C.fecha_nacimiento), VP.producto_codigo, YEAR(V.fecha), MONTH(V.fecha)
 
 -- BI Tiempos
 
@@ -298,17 +300,10 @@ SELECT detalle FROM [Dr0p].Categorias
 
 -- BI Medios de pago
 INSERT INTO [Dr0p].BI_Medios_De_Pago(
-    tipo_medio, descuento_medio_pago_aplicado , costo_medio_pago_aplicado
+    tipo_medio
 )
-SELECT MP.tipo_medio,
-       ISNULL((SELECT DV.importe_descuento_venta FROM Dr0p.Descuentos_Ventas DV WHERE DV.venta_codigo = V.codigo AND DV.concepto <> 'Otros') , 0)
-                                     as descuento_medio_pago_aplicado,
-       VMP.costo_medio_pago_aplicado as costo_medio_de_pago_aplicado
-
-FROM
-    [Dr0p].Ventas V
-        INNER JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
-        INNER JOIN Dr0p.Medios_De_Pago MP ON MP.id = VMP.medio_de_pago_id
+SELECT MP.tipo_medio
+FROM Dr0p.Medios_De_Pago MP
 
 
 -- BI Medios de envio
@@ -377,9 +372,9 @@ SELECT (SELECT id from [Dr0p].BI_Descuentos_Tipo BIDT WHERE BIDT.tipo = 'Por med
        (SELECT id FROM [Dr0p].BI_Tiempos WHERE anio = YEAR(V.fecha) AND mes = MONTH(V.fecha)) as tiempo_id,
        (SELECT id FROM [Dr0p].BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
        DV.importe_descuento_venta as descuento
-    from [Dr0p].Ventas V
+from [Dr0p].Ventas V
          INNER JOIN [Dr0p].Descuentos_Ventas DV on DV.venta_codigo = V.codigo
-    JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
+         JOIN [Dr0p].Canales_de_venta CV on CV.id = V.canal_venta_id
 WHERE DV.importe_descuento_venta IS NOT NULL AND DV.concepto <> 'Otros'
 
 
@@ -439,48 +434,79 @@ FROM
         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
 
 
--- BI Hechos ventas
-
-INSERT INTO [Dr0p].BI_Hechos_Ventas(
+-- BI Hechos ventas total
+/*                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                          medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                          medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
+                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
+                                          descuento_medio_pago_aplicado DECIMAL(18,2),
+                                          total_venta DECIMAL(18,2) NOT NULL*/
+INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
     tiempo_id,
-    rango_etario_id,
     canal_venta_id,
-    producto_codigo,
-    categoria_producto_id,
     medio_envio_id,
     provincia_id,
     medio_pago_id,
-    total_venta,
-    cantidad_productos
+    costo_medio_de_pago_aplicado,
+    descuento_medio_pago_aplicado,
+    total_venta
 )
 SELECT
 
     (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
-    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
-                                                  AND BIRE.anio = YEAR(V.fecha) AND BIRE.mes = MONTH(V.fecha) AND BIRE.producto_codigo = VP.producto_codigo) as rango_etario,
     (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
-    VP.producto_codigo,
-    (SELECT id FROM Dr0p.BI_Categorias_De_Productos BIME WHERE BIME.detalle = (SELECT detalle FROM Dr0p.Categorias CAT WHERE CAT.id= P.categoria)) as categoria_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = (SELECT nombre FROM Dr0p.Medios_de_envio ME WHERE ME.id= EV.medio_envio_id)) as medio_envio_id,
     (SELECT provincia_nombre FROM Dr0p.Localidades L WHERE L.id = CL.localidad) as provincia_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = (SELECT tipo_medio FROM Dr0p.Medios_de_Pago MP WHERE MP.id= VMP.medio_de_pago_id)) as medio_pago_id,
-    VP.precio as total_venta,
-    VP.cantidad as cantidad_productos
+    SUM (VMP.costo_medio_pago_aplicado) as costo_medio_de_pago_aplicado,
+    SUM (
+            CASE
+                WHEN (DV.concepto <> 'Otros') THEN ISNULL(DV.importe_descuento_venta, 0)
+                ELSE 0
+                END
+        )
+        as descuento_medio_pago_aplicado,
+    SUM ( V.total) as total
 
 
 FROM
     Dr0p.Ventas V
         LEFT JOIN Dr0p.Canales_de_venta CV on CV.id = V.canal_venta_id
         INNER JOIN Dr0p.Clientes CL ON CL.id = V.cliente_id
-        INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
-        INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
         LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
         INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
-
+        LEFT JOIN Dr0p.Descuentos_Ventas DV ON DV.venta_codigo = V.codigo
+GROUP BY MONTH(V.fecha), YEAR(V.fecha), CV.descripcion,
+         CL.localidad, EV.medio_envio_id, VMP.medio_de_pago_id
 GO
 
---------------------- CREACION DE VISTAS ---------------------
 
+-- BI Hechos ventas x producto
+INSERT INTO [Dr0p].BI_Hechos_Ventas_Producto(
+    tiempo_id,
+	rango_etario_id,
+    canal_venta_id,
+	categoria_producto_id,
+	producto_codigo,
+	total_valor_producto,
+	cantidad_producto
+)
+SELECT T.id, RE.id, V.canal_venta_id, P.categoria, P.codigo, (VP.precio * VP.cantidad), VP.cantidad
+FROM 
+	Dr0p.Ventas V
+	INNER JOIN Dr0p.BI_Tiempos T ON YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes 
+	INNER JOIN Dr0p.Clientes C ON C.id = V.cliente_id
+	INNER JOIN Dr0p.BI_Rangos_etarios RE ON RE.descripcion = Dr0p.bi_obtener_rango_etario(C.fecha_nacimiento)
+	INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
+	INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
+GO
+
+
+
+--------------------- CREACION DE VISTAS ---------------------
+/*
 -- Las ganancias mensuales de cada canal de venta.
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
@@ -503,12 +529,9 @@ FROM
 GROUP BY
     T.mes, CV.descripcion
 GO
-
-
 -- Los 5 productos con mayor rentabilidad anual
 CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
 AS
-
 SELECT TOP 5
     HV.producto_codigo,
     P.nombre,
@@ -527,14 +550,11 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
      Dr0p.BI_Hechos_Compras HC on HC.producto_codigo = HV.producto_codigo AND HC.tiempo_id = HV.tiempo_id
 GROUP BY HV.producto_codigo, P.nombre, T.anio
 ORDER BY rentabilidad DESC
-
-GO
-
-
+GO*/
 /*Importe total en descuentos aplicados según su tipo de descuento, por
 canal de venta, por mes. Se entiende por tipo de descuento como los
 correspondientes a envío, medio de pago, cupones, etc)*/
-CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
+/*CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
 AS
 
 SELECT
@@ -553,17 +573,17 @@ FROM [Dr0p].BI_Hechos_Descuentos HD
 
 GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
 GO
-
+*/
 /*Total de Ingresos por cada medio de pago por mes, descontando los costos
 por medio de pago (en caso que aplique) y descuentos por medio de pago
 (en caso que aplique)*/
-CREATE VIEW [Dr0p].[BI_VIEW_INGRESOS_MENSUALES_POR_MEDIO_DE_PAGO]
+/*CREATE VIEW [Dr0p].[BI_VIEW_INGRESOS_MENSUALES_POR_MEDIO_DE_PAGO]
 AS
 SELECT
     MP.tipo_medio ,
     T.mes,
     T.anio,
-    SUM((HV.total_venta * HV.cantidad_productos) - HV.costo_medio_de_pago_aplicado - HV.porcentaje_descuento_medio_pago_aplicado) as total_ingresos
+    SUM( HV.total_venta - HV.costo_medio_de_pago_aplicado - HV.descuento_medio_pago_aplicado) as total_ingresos
 FROM [Dr0p].[BI_Hechos_Ventas] HV
          INNER JOIN
      Dr0p.BI_Tiempos T
@@ -571,12 +591,12 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
          INNER JOIN
      Dr0p.BI_Medios_De_Pago MP ON MP.id = HV.medio_pago_id
 GROUP BY MP.tipo_medio, T.anio, T.mes
-GO
+GO*/
 
 /*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 debe representar la cantidad de envíos realizados a cada provincia sobre
 total de envío mensuales*/
-CREATE VIEW [Dr0p].[BI_VIEW_ENVIOS_PROVINCIA_POR_MES]
+/*CREATE VIEW [Dr0p].[BI_VIEW_ENVIOS_PROVINCIA_POR_MES]
 AS
 
 SELECT HV.provincia_id,
@@ -591,7 +611,7 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
 WHERE HV.medio_envio_id IS NOT NULL
 GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
 GO
-
+*/
 
 -- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
 /*
