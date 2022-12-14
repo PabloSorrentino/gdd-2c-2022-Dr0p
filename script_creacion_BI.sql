@@ -220,19 +220,15 @@ CREATE TABLE [Dr0p].[BI_Hechos_Compras](
 
 
 --Hechos Ventas
-CREATE TABLE [Dr0p].[BI_Hechos_Ventas](
+CREATE TABLE [Dr0p].[BI_Hechos_Ventas_Total](
                                           tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-                                          rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
                                           canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-                                          producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-                                          categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
                                           medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
                                           provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
                                           medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
                                           costo_medio_de_pago_aplicado DECIMAL(18,2),
                                           descuento_medio_pago_aplicado DECIMAL(18,2),
-                                          total_venta DECIMAL(18,2) NOT NULL,
-                                          cantidad_productos DECIMAL(18,0)
+                                          total_venta DECIMAL(18,2) NOT NULL
 )
 --INSERCION DE DATOS A TABLAS --
 
@@ -426,55 +422,55 @@ FROM
 
 
 -- BI Hechos ventas
-
-INSERT INTO [Dr0p].BI_Hechos_Ventas(
+/*                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                          medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                          medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
+                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
+                                          descuento_medio_pago_aplicado DECIMAL(18,2),
+                                          total_venta DECIMAL(18,2) NOT NULL*/
+INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
     tiempo_id,
-    rango_etario_id,
     canal_venta_id,
-    producto_codigo,
-    categoria_producto_id,
     medio_envio_id,
     provincia_id,
     medio_pago_id,
     costo_medio_de_pago_aplicado,
     descuento_medio_pago_aplicado,
-    total_venta,
-    cantidad_productos
+    total_venta
 )
 SELECT
 
     (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(V.fecha) AND BITI.mes = MONTH(V.fecha)) as tiempo_id,
-    (SELECT id FROM Dr0p.BI_Rangos_etarios BIRE WHERE BIRE.descripcion = Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento)
-                                                  ) as rango_etario,
     (SELECT id FROM Dr0p.BI_Canales_De_Venta BICV WHERE BICV.descripcion = CV.descripcion) as canal_de_venta_id,
-    VP.producto_codigo,
-    (SELECT id FROM Dr0p.BI_Categorias_De_Productos BIME WHERE BIME.detalle = (SELECT detalle FROM Dr0p.Categorias CAT WHERE CAT.id= P.categoria)) as categoria_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = (SELECT nombre FROM Dr0p.Medios_de_envio ME WHERE ME.id= EV.medio_envio_id)) as medio_envio_id,
     (SELECT provincia_nombre FROM Dr0p.Localidades L WHERE L.id = CL.localidad) as provincia_id,
     (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = (SELECT tipo_medio FROM Dr0p.Medios_de_Pago MP WHERE MP.id= VMP.medio_de_pago_id)) as medio_pago_id,
     SUM (VMP.costo_medio_pago_aplicado) as costo_medio_de_pago_aplicado,
-    SUM ( ISNULL(DV.importe_descuento_venta, 0) )
+    SUM (
+            CASE
+                WHEN (DV.concepto <> 'Otros') THEN ISNULL(DV.importe_descuento_venta, 0)
+                ELSE 0
+                END
+        )
         as descuento_medio_pago_aplicado,
-    SUM ( V.total) as total,
-    SUM ( VP.cantidad ) as cantidad_productos
+    SUM ( V.total) as total
 
 
 FROM
     Dr0p.Ventas V
         LEFT JOIN Dr0p.Canales_de_venta CV on CV.id = V.canal_venta_id
         INNER JOIN Dr0p.Clientes CL ON CL.id = V.cliente_id
-        INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
-        INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
         LEFT JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
         INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
         LEFT JOIN Dr0p.Descuentos_Ventas DV ON DV.venta_codigo = V.codigo
-WHERE DV.concepto <> 'Otros'
-GROUP BY MONTH(V.fecha), YEAR(V.fecha), Dr0p.bi_obtener_rango_etario(CL.fecha_nacimiento), CV.descripcion, VP.producto_codigo,
-         CL.localidad, P.categoria, EV.medio_envio_id, VMP.medio_de_pago_id
+GROUP BY MONTH(V.fecha), YEAR(V.fecha), CV.descripcion,
+         CL.localidad, EV.medio_envio_id, VMP.medio_de_pago_id
 GO
 
 --------------------- CREACION DE VISTAS ---------------------
-
+/*
 -- Las ganancias mensuales de cada canal de venta.
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
