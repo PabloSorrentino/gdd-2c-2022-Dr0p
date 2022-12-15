@@ -555,6 +555,24 @@ FROM [Dr0p].BI_Hechos_Descuentos HD
 GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
 GO
 */
+
+-- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
+CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
+AS
+    SELECT 
+		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
+    FROM
+        Dr0p.BI_Hechos_Ventas_Producto HVP
+		INNER JOIN Dr0p.BI_Rangos_etarios RE ON HVP.rango_etario_id = RE.id
+		INNER JOIN Dr0p.BI_Categorias_De_Productos CP ON CP.id = HVP.categoria_producto_id
+		INNER JOIN Dr0p.BI_Tiempos T ON HVP.tiempo_id = T.id
+	GROUP BY 
+		T.mes, RE.descripcion, CP.detalle
+	ORDER BY 
+		T.mes, rango_etario, CP.detalle ASC
+	OFFSET 0 ROWS
+GO
+
 /*Total de Ingresos por cada medio de pago por mes, descontando los costos
 por medio de pago (en caso que aplique) y descuentos por medio de pago
 (en caso que aplique)*/
@@ -592,28 +610,5 @@ GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
 GO
 */
 
--- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
-/*
-CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
-AS
-    SELECT
-		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HV.cantidad_productos) as total_vendido
-    FROM
-        Dr0p.BI_Hechos_Ventas HV
-    INNER JOIN
-        Dr0p.BI_Rangos_etarios RE
-    ON
-        HV.rango_etario_id = RE.id
-    INNER JOIN
-        Dr0p.BI_Categorias_De_Productos CP
-    ON
-        CP.id = HV.categoria_producto_id
-    INNER JOIN
-        Dr0p.BI_Tiempos T
-    ON
-        HV.tiempo_id = T.id
-    GROUP BY T.mes, RE.descripcion, CP.detalle
-	ORDER BY T.mes, rango_etario, CP.detalle ASC
-	OFFSET 0 ROWS
-GO
-*/
+
+
