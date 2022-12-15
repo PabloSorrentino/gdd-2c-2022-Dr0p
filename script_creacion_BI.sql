@@ -256,12 +256,15 @@ CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
                                                  cantidad_producto DECIMAL(18,0)
 )
 
+-- BI Hechos Envios por Provincias
+
 CREATE TABLE [Dr0p].BI_Hechos_Envios_Provincias(
                                                    tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
                                                    provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
                                                    porcentaje_envios DECIMAL(10,2) NOT NULL,
 )
 
+-- BI Hechos Medios de Envios por Provincia
 
 CREATE TABLE [Dr0p].BI_Hechos_Medios_Envios_Provincias(
                                                           tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
@@ -270,11 +273,22 @@ CREATE TABLE [Dr0p].BI_Hechos_Medios_Envios_Provincias(
                                                           total_envios DECIMAL(18,0) NOT NULL,
 )
 
+-- BI Hechos Compras Reposicion
 CREATE TABLE [Dr0p].BI_Hechos_Compras_Reposicion(
                                                     tiempo_id DECIMAL(18, 0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos (id),
                                                     producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
                                                     cantidad_reposicion DECIMAL(18,0) NOT NULL
 
+)
+
+
+-- BI Hechos Proovedor Precios
+
+CREATE TABLE [Dr0p].BI_Hechos_Proovedor_Precios(
+	tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+    proveedor_cuit NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Proveedores(cuit),
+	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
+	aumento_anual_producto DECIMAL(18,2) NOT NULL
 )
 
 
@@ -599,23 +613,25 @@ FROM Dr0p.Compras C
          INNER JOIN Dr0p.Productos P ON P.codigo = CP.producto_codigo
 GROUP BY producto_codigo, BITI.id
 GO
-/*
-INSERT INTO [Dr0p].BI_Hechos_Compras(
-    tiempo_id,
-    proveedor_cuit,
-    medio_de_pago_id,
-    precio
-)
-SELECT (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)) as tiempo_id,
-       C.proveedor,
-       (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = MP.tipo_medio) as medio_pago_id,
-       CP.precio
-FROM
-    Dr0p.Compras C
-        JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
-        INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
+
+--BI Hechos Proovedor Precios
+INSERT INTO [Dr0p].BI_Hechos_Proovedor_Precios(
+	tiempo_id,
+    proveedor_cuit ,
+	producto_codigo,
+	aumento_anual_producto
+) 
+SELECT 
+	 T.anio, PO.cuit, CP.producto_codigo, ((MAX(CP.precio)-MIN(CP.precio)) / MIN(CP.precio))
+FROM 
+	Dr0p.Compras C
+	INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
+	INNER JOIN Dr0p.BI_Proveedores PO ON PO.CUIT = C.proveedor 
+	INNER JOIN Dr0p.BI_Productos  PR ON PR.codigo = CP.producto_codigo
+	INNER JOIN Dr0p.BI_Tiempos T ON  YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes
+	GROUP BY T.anio, PO.cuit, CP.producto_codigo
 GO
-*/
+
 --------------------- CREACION DE VISTAS ---------------------
 
 -- Las ganancias mensuales de cada canal de venta.
