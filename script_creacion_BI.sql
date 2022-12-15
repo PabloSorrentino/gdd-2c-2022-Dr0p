@@ -546,7 +546,7 @@ AS
 		Dr0p.BI_Hechos_Ganancia_Mensual_Canal HG
 		INNER JOIN Dr0p.BI_Tiempos T ON T.id = HG.tiempo_id
 		INNER JOIN Dr0p.BI_Canales_De_Venta CV ON CV.id = HG.canal_venta_id
-	GROUP BY T.anio T.mes, CV.descripcion, HG.total_ganancias
+	GROUP BY T.anio, T.mes, CV.descripcion, HG.total_ganancias
 GO
 
 
