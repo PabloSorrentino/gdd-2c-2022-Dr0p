@@ -433,25 +433,6 @@ FROM
         INNER JOIN Dr0p.BI_Canales_De_Venta BICV ON BICV.descripcion = (SELECT CV.descripcion FROM Dr0p.Canales_de_venta CV WHERE CV.id = V.canal_venta_id)
 group BY T.id, BICV.id
 
-
--- BI Hechos compras
-/*
-INSERT INTO [Dr0p].BI_Hechos_Compras(
-    tiempo_id,
-    proveedor_cuit,
-    medio_de_pago_id,
-    precio
-)
-SELECT (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)) as tiempo_id,
-       C.proveedor,
-       (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = MP.tipo_medio) as medio_pago_id,
-       CP.precio
-FROM
-    Dr0p.Compras C
-        JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
-        INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
-
-*/
 -- BI Hechos ventas total
 
 INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
@@ -517,31 +498,20 @@ GO
 
 
 --------------------- CREACION DE VISTAS ---------------------
-/*
+
 -- Las ganancias mensuales de cada canal de venta.
+
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
-SELECT
-    CV.descripcion AS CANAL_VENTA, T.mes as MES, (SUM(HV.total_venta) - SUM(HV.costo_medio_de_pago_aplicado) - SUM(HC.precio)) AS TOTAL_VENDIDO
-FROM
-    Dr0p.BI_Canales_De_Venta CV
-        INNER JOIN
-    Dr0p.BI_Hechos_Ventas_Total HV
-    ON
-            CV.id = HV.canal_venta_id
-        INNER JOIN
-    Dr0p.BI_Tiempos T
-    ON
-            HV.tiempo_id = T.id
-        INNER JOIN
-    Dr0p.BI_Hechos_Compras HC
-    ON
-            HC.producto_codigo = HV.producto_codigo
-GROUP BY
-    T.mes, CV.descripcion
+	SELECT  T.mes, CV.descripcion, HG.total_ganancias
+	FROM 
+		Dr0p.BI_Hechos_Ganancia_Mensual_Canal HG
+		INNER JOIN Dr0p.BI_Tiempos T ON T.id = HG.tiempo_id
+		INNER JOIN Dr0p.BI_Canales_De_Venta CV ON CV.id = HG.canal_venta_id
 GO
 
 
+/*
 -- Los 5 productos con mayor rentabilidad anual
 CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
 AS
