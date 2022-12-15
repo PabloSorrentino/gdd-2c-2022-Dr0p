@@ -567,27 +567,6 @@ ORDER BY rentabilidad DESC
 
 GO
 
-    /*    Importe total en descuentos aplicados según su tipo de descuento, por
-canal de venta, por mes. Se entiende por tipo de descuento como los
-correspondientes a envío, medio de pago, cupones, etc)
-CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
-AS
-SELECT
-    DT.tipo,
-    CV.descripcion,
-    T.mes ,
-    T.anio,
-    SUM(total_descuento) as total_descuento_mensual
-FROM [Dr0p].BI_Hechos_Descuentos HD
-         INNER JOIN
-     Dr0p.BI_Tiempos T ON HD.tiempo_id = T.id
-         INNER JOIN
-     Dr0p.BI_Descuentos_Tipo DT ON DT.id = HD.descuento_tipo_id
-         INNER JOIN
-     Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
-GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
-GO
-*/
 
 -- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
 CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
@@ -620,6 +599,25 @@ AS
 	GROUP BY   T.anio, T.mes, MP.tipo_medio  
 GO
 
+/* Importe total en descuentos aplicados según su tipo de descuento, por
+canal de venta, por mes. Se entiende por tipo de descuento como los
+correspondientes a envío, medio de pago, cupones, etc)*/
+CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
+AS
+SELECT
+    DT.tipo,
+    CV.descripcion as canal_de_venta,
+    T.mes ,
+    T.anio,
+    total_descuento as total_descuento_mensual
+FROM [Dr0p].BI_Hechos_Descuentos HD
+         INNER JOIN
+     Dr0p.BI_Tiempos T ON HD.tiempo_id = T.id
+         INNER JOIN
+     Dr0p.BI_Descuentos_Tipo DT ON DT.id = HD.descuento_tipo_id
+         INNER JOIN
+     Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
+GO
 
 /*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 debe representar la cantidad de envíos realizados a cada provincia sobre
