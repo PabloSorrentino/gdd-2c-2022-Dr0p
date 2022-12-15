@@ -112,10 +112,10 @@ END
 GO
 
 CREATE FUNCTION Dr0p.bi_calcular_rentabilidad (@ingresos DECIMAL(18,2), @egresos DECIMAL(18,2))
-    RETURNS DECIMAL(5,2)
+    RETURNS DECIMAL(10,2)
 AS
 BEGIN
-    DECLARE @returnvalue DECIMAL(5,2);
+    DECLARE @returnvalue DECIMAL(10,2);
     SET @returnvalue = ((@ingresos - @egresos) / @ingresos) * 100
 
 
@@ -237,14 +237,22 @@ CREATE TABLE [Dr0p].[BI_Hechos_Ventas_Total](
 
 --Hechos Venta x Producto
 
- CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
+ CREATE TABLE [Dr0p].BI_Hechos_Productos_Rentabilidad(
     tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-	rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
-    canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-	categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
 	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-	total_productos_vendidos DECIMAL(18,2) NOT NULL,
-	cantidad_producto DECIMAL(18,0)
+	rentabilidad DECIMAL(10,2)
+)
+
+--Hechos Venta x Producto
+
+CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
+                                                 tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                                 rango_etario_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Rangos_etarios(id),
+                                                 canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                                 categoria_producto_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Categorias_De_Productos(id),
+                                                 producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
+                                                 total_productos_vendidos DECIMAL(18,2) NOT NULL,
+                                                 cantidad_producto DECIMAL(18,0)
 )
 
 --INSERCION DE DATOS A TABLAS --
@@ -435,23 +443,7 @@ group BY T.id, BICV.id
 
 
 -- BI Hechos compras
-/*
-INSERT INTO [Dr0p].BI_Hechos_Compras(
-    tiempo_id,
-    proveedor_cuit,
-    medio_de_pago_id,
-    precio
-)
-SELECT (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)) as tiempo_id,
-       C.proveedor,
-       (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = MP.tipo_medio) as medio_pago_id,
-       CP.precio
-FROM
-    Dr0p.Compras C
-        JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
-        INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
 
-*/
 -- BI Hechos ventas total
 
 INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
@@ -505,9 +497,9 @@ INSERT INTO [Dr0p].BI_Hechos_Ventas_Producto(
 	cantidad_producto
 )
 SELECT T.id, RE.id, V.canal_venta_id, P.categoria, P.codigo, SUM(VP.precio * VP.cantidad) , SUM(VP.cantidad)
-FROM 
+FROM
 	Dr0p.Ventas V
-	INNER JOIN Dr0p.BI_Tiempos T ON YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes 
+	INNER JOIN Dr0p.BI_Tiempos T ON YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
 	INNER JOIN Dr0p.Clientes C ON C.id = V.cliente_id
 	INNER JOIN Dr0p.BI_Rangos_etarios RE ON RE.descripcion = Dr0p.bi_obtener_rango_etario(C.fecha_nacimiento)
 	INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
@@ -515,8 +507,75 @@ FROM
 	GROUP BY T.id, RE.id, V.canal_venta_id, P.categoria, P.codigo
 GO
 
+--
+INSERT INTO [Dr0p].BI_Hechos_Productos_Rentabilidad(tiempo_id, producto_codigo, rentabilidad)
+SELECT
+    T.id,
+       P.codigo,
+    Dr0p.bi_calcular_rentabilidad( SUM( CONVERT(DECIMAL(18, 2), VP.cantidad*VP.precio )) , SUM( CONVERT(DECIMAL(18, 2),  CP.cantidad*CP.precio)) )
+FROM Dr0p.BI_Tiempos T
+         LEFT JOIN Dr0p.Ventas V ON YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
+         INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
+         INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
+         LEFT JOIN Dr0p.Compras_Productos CP ON CP.producto_codigo = P.codigo
+         LEFT JOIN Dr0p.Compras C ON YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes AND C.numero = CP.compra_numero
+GROUP BY T.id, P.codigo
+/*
+INSERT INTO [Dr0p].BI_Hechos_Compras(
+    tiempo_id,
+    proveedor_cuit,
+    medio_de_pago_id,
+    precio
+)
+SELECT (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)) as tiempo_id,
+       C.proveedor,
+       (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = MP.tipo_medio) as medio_pago_id,
+       CP.precio
+FROM
+    Dr0p.Compras C
+        JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
+        INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
 
+*/
 --------------------- CREACION DE VISTAS ---------------------
+
+-- Los 5 productos con mayor rentabilidad anual
+CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
+AS
+SELECT TOP 5
+    P.codigo,
+    P.nombre,
+    T.anio,
+    AVG(BIHPR.rentabilidad) as rentabilidad
+FROM [Dr0p].BI_Hechos_Productos_Rentabilidad BIHPR
+
+         INNER JOIN Dr0p.BI_Tiempos T ON T.id = BIHPR.tiempo_id
+         INNER JOIN Dr0p.BI_Productos P ON P.codigo = BIHPR.producto_codigo
+GROUP BY P.codigo, P.nombre, T.anio
+ORDER BY rentabilidad DESC
+
+GO
+
+    /*    Importe total en descuentos aplicados según su tipo de descuento, por
+canal de venta, por mes. Se entiende por tipo de descuento como los
+correspondientes a envío, medio de pago, cupones, etc)
+CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
+AS
+SELECT
+    DT.tipo,
+    CV.descripcion,
+    T.mes ,
+    T.anio,
+    SUM(total_descuento) as total_descuento_mensual
+FROM [Dr0p].BI_Hechos_Descuentos HD
+         INNER JOIN
+     Dr0p.BI_Tiempos T ON HD.tiempo_id = T.id
+         INNER JOIN
+     Dr0p.BI_Descuentos_Tipo DT ON DT.id = HD.descuento_tipo_id
+         INNER JOIN
+     Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
+GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
+GO*/
 /*
 -- Las ganancias mensuales de cada canal de venta.
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
@@ -542,48 +601,7 @@ GROUP BY
 GO
 
 
--- Los 5 productos con mayor rentabilidad anual
-CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
-AS
-SELECT TOP 5
-    HV.producto_codigo,
-    P.nombre,
-    T.anio,
-    Dr0p.bi_calcular_rentabilidad(SUM(HV.total_venta * HV.cantidad_productos), SUM(HC.precio * HC.cantidad)) as rentabilidad
-FROM [Dr0p].[BI_Hechos_Ventas] HV
-         INNER JOIN
-     Dr0p.BI_Tiempos T
-     ON
-             HV.tiempo_id = T.id
-         INNER JOIN
-     Dr0p.BI_Productos P
-     ON
-             P.codigo = HV.producto_codigo
-         INNER JOIN
-     Dr0p.BI_Hechos_Compras HC on HC.producto_codigo = HV.producto_codigo AND HC.tiempo_id = HV.tiempo_id
-GROUP BY HV.producto_codigo, P.nombre, T.anio
-ORDER BY rentabilidad DESC
-GO
-Importe total en descuentos aplicados según su tipo de descuento, por
-canal de venta, por mes. Se entiende por tipo de descuento como los
-correspondientes a envío, medio de pago, cupones, etc)
-CREATE VIEW [Dr0p].[BI_DESCUENTOS_APLICADOS_MENSUALMENTE_POR_TIPO_Y_CANAL_DE_VENTA]
-AS
-SELECT
-    DT.tipo,
-    CV.descripcion,
-    T.mes ,
-    T.anio,
-    SUM(total_descuento) as total_descuento_mensual
-FROM [Dr0p].BI_Hechos_Descuentos HD
-         INNER JOIN
-     Dr0p.BI_Tiempos T ON HD.tiempo_id = T.id
-         INNER JOIN
-     Dr0p.BI_Descuentos_Tipo DT ON DT.id = HD.descuento_tipo_id
-         INNER JOIN
-     Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
-GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
-GO
+
 */
 /*Total de Ingresos por cada medio de pago por mes, descontando los costos
 por medio de pago (en caso que aplique) y descuentos por medio de pago
