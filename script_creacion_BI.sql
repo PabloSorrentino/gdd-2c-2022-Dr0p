@@ -255,6 +255,16 @@ CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
                                                  cantidad_producto DECIMAL(18,0)
 )
 
+
+CREATE TABLE [Dr0p].BI_Hechos_Envios_Provincias(
+                                                 tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                                 provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                                 medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                                 porcentaje_envios DECIMAL(10,2) NOT NULL,
+                                                 promedio_envios DECIMAL(18,2) NOT NULL,
+                                                 total_envios DECIMAL(18,2) NOT NULL
+)
+
 --INSERCION DE DATOS A TABLAS --
 
 
@@ -518,6 +528,9 @@ FROM Dr0p.BI_Tiempos T
          LEFT JOIN Dr0p.Compras C ON YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes AND C.numero = CP.compra_numero
 GROUP BY T.id, P.codigo
 GO
+
+INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (tiempo_id, provincia_id, medio_envio_id, porcentaje_envios, promedio_envios, total_envios)
+SELECT
 /*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
