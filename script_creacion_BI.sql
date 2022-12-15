@@ -213,9 +213,7 @@ CREATE TABLE [Dr0p].[BI_Hechos_Compras](
                                            tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
                                            proveedor_cuit NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Proveedores(cuit),
                                            medio_de_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                           producto_codigo NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-                                           precio DECIMAL(18,2),
-                                           cantidad DECIMAL(19,0)
+                                           precio DECIMAL(18,2)
 )
 
 
@@ -418,25 +416,18 @@ GROUP BY YEAR(V.fecha), MONTH(V.fecha), CV.descripcion
 
 
 
-
-
-
 -- BI Hechos compras
 
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
     proveedor_cuit,
     medio_de_pago_id,
-    producto_codigo,
-    precio,
-    cantidad
+    precio
 )
 SELECT (SELECT id FROM Dr0p.BI_Tiempos BITI WHERE BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)) as tiempo_id,
        C.proveedor,
        (SELECT id FROM Dr0p.BI_Medios_De_Pago BIMP WHERE BIMP.tipo_medio = MP.tipo_medio) as medio_pago_id,
-       producto_codigo,
-       CP.precio,
-       CP.cantidad
+       CP.precio
 FROM
     Dr0p.Compras C
         JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
@@ -517,7 +508,8 @@ GO
 
 --------------------- CREACION DE VISTAS ---------------------
 /*
--- Las ganancias mensuales de cada canal de venta.
+-- Las ganancias mensuales de cada canal de venta. */
+/*
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
 SELECT
@@ -525,7 +517,7 @@ SELECT
 FROM
     Dr0p.BI_Canales_De_Venta CV
         INNER JOIN
-    Dr0p.BI_Hechos_Ventas HV
+    Dr0p.BI_Hechos_Ventas_Total HV
     ON
             CV.id = HV.canal_venta_id
         INNER JOIN
@@ -539,8 +531,11 @@ FROM
 GROUP BY
     T.mes, CV.descripcion
 GO
+*/
+
+
 -- Los 5 productos con mayor rentabilidad anual
-CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
+/*CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
 AS
 SELECT TOP 5
     HV.producto_codigo,
@@ -560,7 +555,9 @@ FROM [Dr0p].[BI_Hechos_Ventas] HV
      Dr0p.BI_Hechos_Compras HC on HC.producto_codigo = HV.producto_codigo AND HC.tiempo_id = HV.tiempo_id
 GROUP BY HV.producto_codigo, P.nombre, T.anio
 ORDER BY rentabilidad DESC
-GO*/
+GO
+*/
+
 /*Importe total en descuentos aplicados según su tipo de descuento, por
 canal de venta, por mes. Se entiende por tipo de descuento como los
 correspondientes a envío, medio de pago, cupones, etc)*/
