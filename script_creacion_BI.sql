@@ -589,38 +589,34 @@ GO
 -- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
 CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
 AS
-    SELECT
-		T.anio, T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
+    SELECT 
+		T.mes, T.anio, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
     FROM
         Dr0p.BI_Hechos_Ventas_Producto HVP
 		INNER JOIN Dr0p.BI_Rangos_etarios RE ON HVP.rango_etario_id = RE.id
 		INNER JOIN Dr0p.BI_Categorias_De_Productos CP ON CP.id = HVP.categoria_producto_id
 		INNER JOIN Dr0p.BI_Tiempos T ON HVP.tiempo_id = T.id
-	GROUP BY
-		T.mes, RE.descripcion, CP.detalle
-	ORDER BY
+	GROUP BY 
+		T.anio, T.mes, RE.descripcion, CP.detalle
+	ORDER BY 
 		T.mes, rango_etario, CP.detalle ASC
 	OFFSET 0 ROWS
 GO
 
+
 /*Total de Ingresos por cada medio de pago por mes, descontando los costos
 por medio de pago (en caso que aplique) y descuentos por medio de pago
 (en caso que aplique)*/
-/*CREATE VIEW [Dr0p].[BI_VIEW_INGRESOS_MENSUALES_POR_MEDIO_DE_PAGO]
+CREATE VIEW [Dr0p].[BI_VIEW_INGRESOS_MENSUALES_POR_MEDIO_DE_PAGO]
 AS
-SELECT
-    MP.tipo_medio ,
-    T.mes,
-    T.anio,
-    SUM( HV.total_venta - HV.costo_medio_de_pago_aplicado - HV.descuento_medio_pago_aplicado) as total_ingresos
-FROM [Dr0p].[BI_Hechos_Ventas] HV
-         INNER JOIN
-     Dr0p.BI_Tiempos T
-     ON HV.tiempo_id = T.id
-         INNER JOIN
-     Dr0p.BI_Medios_De_Pago MP ON MP.id = HV.medio_pago_id
-GROUP BY MP.tipo_medio, T.anio, T.mes
-GO*/
+	SELECT T.anio, T.mes, MP.tipo_medio, SUM(HVT.total_venta - HVT.costo_medio_de_pago_aplicado - HVT.descuento_medio_pago_aplicado) as total_ingresos
+	FROM 
+		Dr0p.BI_Hechos_Ventas_Total HVT
+	INNER JOIN Dr0p.BI_Tiempos T ON T.id = HVT.tiempo_id
+	INNER JOIN Dr0p.BI_Medios_De_Pago MP ON MP.id = HVT.medio_pago_id
+	GROUP BY   T.anio, T.mes, MP.tipo_medio  
+GO
+
 
 /*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 debe representar la cantidad de envíos realizados a cada provincia sobre
