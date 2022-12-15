@@ -650,5 +650,27 @@ GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
 GO
 */
 
+/*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
+debe representar la cantidad de envíos realizados a cada provincia sobre
+total de envío mensuales*/
+CREATE VIEW [Dr0p].[BI_VIEW_ENVIOS_PROVINCIA_POR_MES]
+AS
+	SELECT T.anio, T.mes, P.nombre, porcentaje_envios 
+	FROM  [Dr0p].BI_HECHOS_ENVIOS_PROVINCIAS HEP
+	INNER JOIN Dr0p.BI_Tiempos T on T.id = HEP.tiempo_id
+	INNER JOIN Dr0p.BI_Provincias P on p.nombre = HEP.provincia_id
+	GROUP BY T.anio, T.mes, P.nombre, porcentaje_envios
+GO
+
+-- Valor promedio de envío por Provincia por Medio De Envío anual.
+CREATE VIEW [Dr0p].[BI_VIEW_VALOR_PROMEDIO_ENVIO_ANUAL_PROVINCIA]
+AS
+	SELECT T.anio, P.nombre, ME.nombre, HEP.promedio_envios 
+	FROM  [Dr0p].BI_HECHOS_ENVIOS_PROVINCIAS HEP
+	INNER JOIN Dr0p.BI_Tiempos T on T.id = HEP.tiempo_id
+	INNER JOIN Dr0p.BI_Provincias P on p.nombre = HEP.provincia_id
+	INNER JOIN Dr0p.BI_Medios_De_Envio ME ON ME.id = HEP.medio_envio_id
+	GROUP BY T.anio, P.nombre, ME.nombre, HEP.promedio_envios
+GO
 
 
