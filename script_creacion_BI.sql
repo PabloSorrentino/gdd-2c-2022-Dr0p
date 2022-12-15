@@ -627,7 +627,6 @@ FROM
     Dr0p.BI_Hechos_Ganancia_Mensual_Canal HG
         INNER JOIN Dr0p.BI_Tiempos T ON T.id = HG.tiempo_id
         INNER JOIN Dr0p.BI_Canales_De_Venta CV ON CV.id = HG.canal_venta_id
-GROUP BY T.anio, T.mes, CV.descripcion, HG.total_ganancias
 GO
 
 
@@ -660,10 +659,10 @@ FROM
         INNER JOIN Dr0p.BI_Categorias_De_Productos CP ON CP.id = HVP.categoria_producto_id
         INNER JOIN Dr0p.BI_Tiempos T ON HVP.tiempo_id = T.id
 GROUP BY
-    T.anio, T.mes, RE.descripcion, CP.detalle
+    CP.detalle, RE.descripcion, T.anio, T.mes
 ORDER BY
-    T.mes, rango_etario, CP.detalle ASC
-OFFSET 0 ROWS
+    SUM(HVP.cantidad_producto) DESC
+OFFSET 0 ROWS  FETCH NEXT 5 ROWS ONLY
 GO
 
 
