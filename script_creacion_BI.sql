@@ -218,18 +218,25 @@ CREATE TABLE [Dr0p].[BI_Hechos_Compras](
                                            cantidad DECIMAL(19,0)
 )
 
+--Hechos Ventas Total
+CREATE TABLE [Dr0p].[BI_Hechos_Ganancia_Mensual_Canal](
+                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                          total_ganancias DECIMAL(18,2) NOT NULL
+)
 
 --Hechos Ventas Total
 CREATE TABLE [Dr0p].[BI_Hechos_Ventas_Total](
-                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-                                          medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
-                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
-                                          medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
-                                          descuento_medio_pago_aplicado DECIMAL(18,2),
-                                          total_venta DECIMAL(18,2) NOT NULL
+                                                tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                                canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
+                                                medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                                provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                                medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
+                                                costo_medio_de_pago_aplicado DECIMAL(18,2),
+                                                descuento_medio_pago_aplicado DECIMAL(18,2),
+                                                total_venta DECIMAL(18,2) NOT NULL
 )
+
 
 --Hechos Venta x Producto
 
@@ -418,11 +425,20 @@ GROUP BY YEAR(V.fecha), MONTH(V.fecha), CV.descripcion
 
 
 
-
+-- BI_Hechos_Ganancia_Mensual_Canal --
+INSERT INTO [Dr0p].BI_Hechos_Ganancia_Mensual_Canal(tiempo_id, canal_venta_id, total_ganancias)
+SELECT T.id, BICV.id, SUM (V.total - C.total - VMP.costo_medio_pago_aplicado)
+FROM
+    Dr0p.Ventas V
+        INNER JOIN Dr0p.BI_Tiempos T ON YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
+        INNER JOIN Dr0p.Ventas_Medios_De_Pago VMP ON VMP.venta_codigo = V.codigo
+        INNER JOIN Dr0p.Compras C ON YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes
+        INNER JOIN Dr0p.BI_Canales_De_Venta BICV ON BICV.descripcion = (SELECT CV.descripcion FROM Dr0p.Canales_de_venta CV WHERE CV.id = V.canal_venta_id)
+group BY T.id, BICV.id
 
 
 -- BI Hechos compras
-
+/*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
     proveedor_cuit,
@@ -442,16 +458,9 @@ FROM
         JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
 
-
+*/
 -- BI Hechos ventas total
-/*                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
-                                          canal_venta_id  DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Canales_De_Venta(id),
-                                          medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
-                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
-                                          medio_pago_id DECIMAL(19,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Pago(id),
-                                          costo_medio_de_pago_aplicado DECIMAL(18,2),
-                                          descuento_medio_pago_aplicado DECIMAL(18,2),
-                                          total_venta DECIMAL(18,2) NOT NULL*/
+
 INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
     tiempo_id,
     canal_venta_id,
@@ -511,7 +520,6 @@ FROM
 	INNER JOIN Dr0p.Ventas_Productos VP ON VP.venta_codigo = V.codigo
 	INNER JOIN Dr0p.Productos P ON P.codigo = VP.producto_codigo
 GO
-
 
 
 --------------------- CREACION DE VISTAS ---------------------
