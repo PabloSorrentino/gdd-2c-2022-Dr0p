@@ -517,6 +517,7 @@ FROM Dr0p.BI_Tiempos T
          LEFT JOIN Dr0p.Compras_Productos CP ON CP.producto_codigo = P.codigo
          LEFT JOIN Dr0p.Compras C ON YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes AND C.numero = CP.compra_numero
 GROUP BY T.id, P.codigo
+GO
 /*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
@@ -532,21 +533,23 @@ FROM
     Dr0p.Compras C
         JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
-
+GO
+*/
 --------------------- CREACION DE VISTAS ---------------------
 
 -- Las ganancias mensuales de cada canal de venta.
 
 CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
 AS
-	SELECT  T.mes, CV.descripcion, HG.total_ganancias
+	SELECT  T.anio, T.mes, CV.descripcion, HG.total_ganancias
 	FROM
 		Dr0p.BI_Hechos_Ganancia_Mensual_Canal HG
 		INNER JOIN Dr0p.BI_Tiempos T ON T.id = HG.tiempo_id
 		INNER JOIN Dr0p.BI_Canales_De_Venta CV ON CV.id = HG.canal_venta_id
+	GROUP BY T.anio T.mes, CV.descripcion, HG.total_ganancias
 GO
 
-*/
+
 -- Los 5 productos con mayor rentabilidad anual
 CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
 AS
