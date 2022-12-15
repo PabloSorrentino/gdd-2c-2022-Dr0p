@@ -441,9 +441,6 @@ FROM
         INNER JOIN Dr0p.BI_Canales_De_Venta BICV ON BICV.descripcion = (SELECT CV.descripcion FROM Dr0p.Canales_de_venta CV WHERE CV.id = V.canal_venta_id)
 group BY T.id, BICV.id
 
-
--- BI Hechos compras
-
 -- BI Hechos ventas total
 
 INSERT INTO [Dr0p].BI_Hechos_Ventas_Total(
@@ -536,9 +533,20 @@ FROM
         JOIN Dr0p.Medios_De_Pago MP ON C.medio_pago = MP.id
         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
 
-*/
 --------------------- CREACION DE VISTAS ---------------------
 
+-- Las ganancias mensuales de cada canal de venta.
+
+CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
+AS
+	SELECT  T.mes, CV.descripcion, HG.total_ganancias
+	FROM
+		Dr0p.BI_Hechos_Ganancia_Mensual_Canal HG
+		INNER JOIN Dr0p.BI_Tiempos T ON T.id = HG.tiempo_id
+		INNER JOIN Dr0p.BI_Canales_De_Venta CV ON CV.id = HG.canal_venta_id
+GO
+
+*/
 -- Los 5 productos con mayor rentabilidad anual
 CREATE VIEW [Dr0p].[BI_VIEW_TOP_5_RENTABILIDAD_PRODUCTOS]
 AS
@@ -575,34 +583,26 @@ FROM [Dr0p].BI_Hechos_Descuentos HD
          INNER JOIN
      Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
 GROUP BY DT.tipo, T.mes , T.anio, CV.descripcion
-GO*/
-/*
--- Las ganancias mensuales de cada canal de venta.
-CREATE VIEW [Dr0p].[BI_VIEW_GANANCIA_MENSUAL_CANAL_VENTA]
+GO
+*/
+
+-- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
+CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
 AS
-SELECT
-    CV.descripcion AS CANAL_VENTA, T.mes as MES, (SUM(HV.total_venta) - SUM(HV.costo_medio_de_pago_aplicado) - SUM(HC.precio)) AS TOTAL_VENDIDO
-FROM
-    Dr0p.BI_Canales_De_Venta CV
-        INNER JOIN
-    Dr0p.BI_Hechos_Ventas_Total HV
-    ON
-            CV.id = HV.canal_venta_id
-        INNER JOIN
-    Dr0p.BI_Tiempos T
-    ON
-            HV.tiempo_id = T.id
-        INNER JOIN
-    Dr0p.BI_Hechos_Compras HC
-    ON
-            HC.producto_codigo = HV.producto_codigo
-GROUP BY
-    T.mes, CV.descripcion
+    SELECT
+		T.anio, T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
+    FROM
+        Dr0p.BI_Hechos_Ventas_Producto HVP
+		INNER JOIN Dr0p.BI_Rangos_etarios RE ON HVP.rango_etario_id = RE.id
+		INNER JOIN Dr0p.BI_Categorias_De_Productos CP ON CP.id = HVP.categoria_producto_id
+		INNER JOIN Dr0p.BI_Tiempos T ON HVP.tiempo_id = T.id
+	GROUP BY
+		T.mes, RE.descripcion, CP.detalle
+	ORDER BY
+		T.mes, rango_etario, CP.detalle ASC
+	OFFSET 0 ROWS
 GO
 
-
-
-*/
 /*Total de Ingresos por cada medio de pago por mes, descontando los costos
 por medio de pago (en caso que aplique) y descuentos por medio de pago
 (en caso que aplique)*/
@@ -640,28 +640,5 @@ GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
 GO
 */
 
--- Las 5 categorías de productos más vendidos por rango etario de clientes por mes.
-/*
-CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
-AS
-    SELECT
-		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HV.cantidad_productos) as total_vendido
-    FROM
-        Dr0p.BI_Hechos_Ventas HV
-    INNER JOIN
-        Dr0p.BI_Rangos_etarios RE
-    ON
-        HV.rango_etario_id = RE.id
-    INNER JOIN
-        Dr0p.BI_Categorias_De_Productos CP
-    ON
-        CP.id = HV.categoria_producto_id
-    INNER JOIN
-        Dr0p.BI_Tiempos T
-    ON
-        HV.tiempo_id = T.id
-    GROUP BY T.mes, RE.descripcion, CP.detalle
-	ORDER BY T.mes, rango_etario, CP.detalle ASC
-	OFFSET 0 ROWS
-GO
-*/
+
+
