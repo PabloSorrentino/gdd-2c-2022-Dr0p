@@ -270,6 +270,14 @@ CREATE TABLE [Dr0p].BI_Hechos_Medios_Envios_Provincias(
                                                           total_envios DECIMAL(18,0) NOT NULL,
 )
 
+CREATE TABLE [Dr0p].BI_Hechos_Compras_Reposicion(
+                                                    tiempo_id DECIMAL(18, 0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos (id),
+                                                    producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
+                                                    cantidad_reposicion DECIMAL(18,0) NOT NULL
+
+)
+
+
 --INSERCION DE DATOS A TABLAS --
 
 
@@ -577,6 +585,20 @@ FROM Dr0p.Ventas V
 
 GROUP BY T.id, T.mes, T.anio, L.provincia_nombre, ME.nombre
 GO
+
+INSERT INTO Dr0p.BI_Hechos_Compras_Reposicion(
+    tiempo_id,
+    producto_codigo,
+    cantidad_reposicion)
+SELECT BITI.id,
+       producto_codigo,
+       SUM(CP.cantidad)
+FROM Dr0p.Compras C
+         INNER JOIN Dr0p.BI_Tiempos BITI ON BITI.anio = YEAR(C.fecha) AND BITI.mes = MONTH(C.fecha)
+         INNER JOIN Dr0p.Compras_Productos CP ON CP.compra_numero = C.numero
+         INNER JOIN Dr0p.Productos P ON P.codigo = CP.producto_codigo
+GROUP BY producto_codigo, BITI.id
+GO
 /*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
@@ -688,7 +710,6 @@ SELECT T.anio, T.mes, P.nombre, porcentaje_envios
 FROM  [Dr0p].BI_HECHOS_ENVIOS_PROVINCIAS HEP
           INNER JOIN Dr0p.BI_Tiempos T on T.id = HEP.tiempo_id
           INNER JOIN Dr0p.BI_Provincias P on p.nombre = HEP.provincia_id
-GROUP BY T.anio, T.mes, P.nombre, porcentaje_envios
 GO
 
 
@@ -706,7 +727,15 @@ FROM  [Dr0p].BI_Hechos_Medios_Envios_Provincias HMEP
 GROUP BY T.anio, P.nombre, ME.nombre
 GO
 
-
+-- Los 3 productos con mayor cantidad de reposición por mes.
+CREATE VIEW [Dr0p].[BI_VIEW_TOP_3_REPOSICION_POR_MES]
+AS
+SELECT TOP 3 T.anio, T.mes, P.nombre, cantidad_reposicion
+FROM  [Dr0p].BI_Hechos_Compras_Reposicion HCR
+          INNER JOIN Dr0p.BI_Tiempos T on T.id = HCR.tiempo_id
+          INNER JOIN Dr0p.BI_Productos P on P.codigo = HCR.producto_codigo
+ORDER BY cantidad_reposicion DESC
+GO
 
 
 /*INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (
