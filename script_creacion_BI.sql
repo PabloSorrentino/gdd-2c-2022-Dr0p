@@ -262,6 +262,14 @@ CREATE TABLE [Dr0p].BI_Hechos_Envios_Provincias(
                                                  total_envios DECIMAL(18,2) NOT NULL
 )
 
+
+CREATE TABLE [Dr0p].BI_Hechos_Medios_Envios_Provincias(
+                                                          tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
+                                                          provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
+                                                          medio_de_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
+                                                          total_envios DECIMAL(18,0) NOT NULL,
+)
+
 --INSERCION DE DATOS A TABLAS --
 
 
@@ -547,8 +555,6 @@ SELECT
      WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
     ) as total_envios
 
-
-
 FROM Dr0p.Ventas V
          INNER JOIN Dr0p.BI_Tiempos T ON  YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
          INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
@@ -556,8 +562,28 @@ FROM Dr0p.Ventas V
          INNER JOIN Dr0p.Localidades L ON L.id = EVL.localidad_id
 
 GROUP BY T.id, T.mes, T.anio, L.provincia_nombre
-ORDER BY T.id
 GO
+
+INSERT INTO Dr0p.BI_Hechos_Medios_Envios_Provincias(
+    tiempo_id,
+    provincia_id,
+    medio_de_envio_id,
+    total_envios)
+SELECT
+    T.id as tiempo,
+    L.provincia_nombre as provincia,
+    (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = ME.nombre) as medio_de_envio_id,
+    count(EV.id)
+
+FROM Dr0p.Ventas V
+         INNER JOIN Dr0p.BI_Tiempos T ON  YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
+         INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
+         INNER JOIN Dr0p.Medios_de_Envio ME ON ME.id = EV.medio_envio_id
+         INNER JOIN Dr0p.Envios_Ventas_Localidad EVL ON EVL.envio_venta_id = EV.id
+         INNER JOIN Dr0p.Localidades L ON L.id = EVL.localidad_id
+
+GROUP BY T.id, T.mes, T.anio, L.provincia_nombre, ME.nombre
+
 /*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
@@ -659,23 +685,6 @@ FROM [Dr0p].BI_Hechos_Descuentos HD
      Dr0p.BI_Canales_De_Venta CV ON CV.id = HD.canales_de_venta_id
 GO
 
-/*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
-debe representar la cantidad de envíos realizados a cada provincia sobre
-total de envío mensuales*/
-/*CREATE VIEW [Dr0p].[BI_VIEW_ENVIOS_PROVINCIA_POR_MES]
-AS
-SELECT HV.provincia_id,
-       T.anio,
-       T.mes,
-       (COUNT(*) / (SELECT count(*) FROM [Dr0p].[BI_Hechos_Ventas] HV2 WHERE HV2.tiempo_id = HV.tiempo_id AND HV2.medio_envio_id IS NOT NULL))*100 as porcentaje_provincia
-FROM [Dr0p].[BI_Hechos_Ventas] HV
-         INNER JOIN
-     Dr0p.BI_Tiempos T
-     ON HV.tiempo_id = T.id
-WHERE HV.medio_envio_id IS NOT NULL
-GROUP BY HV.provincia_id, HV.tiempo_id, T.anio, T.mes
-GO
-*/
 
 /*Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 debe representar la cantidad de envíos realizados a cada provincia sobre
