@@ -560,7 +560,7 @@ GO
 CREATE VIEW [Dr0p].[BI_PRODUCTOS_MAS_VENDIDOS_POR_RANGO_ETARIO]
 AS
     SELECT 
-		T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
+		T.anio, T.mes, RE.descripcion AS rango_etario, CP.detalle, SUM(HVP.cantidad_producto) as total_vendido
     FROM
         Dr0p.BI_Hechos_Ventas_Producto HVP
 		INNER JOIN Dr0p.BI_Rangos_etarios RE ON HVP.rango_etario_id = RE.id
