@@ -255,13 +255,10 @@ CREATE TABLE [Dr0p].BI_Hechos_Ventas_Producto(
                                                  cantidad_producto DECIMAL(18,0)
 )
 
-
 CREATE TABLE [Dr0p].BI_Hechos_Envios_Provincias(
                                                  tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
                                                  provincia_id NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Provincias(nombre),
-                                                 medio_envio_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Medios_De_Envio(id),
                                                  porcentaje_envios DECIMAL(10,2) NOT NULL,
-                                                 promedio_envios DECIMAL(18,2) NOT NULL,
                                                  total_envios DECIMAL(18,2) NOT NULL
 )
 
@@ -529,8 +526,38 @@ FROM Dr0p.BI_Tiempos T
 GROUP BY T.id, P.codigo
 GO
 
-INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (tiempo_id, provincia_id, medio_envio_id, porcentaje_envios, promedio_envios, total_envios)
+INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (
+    tiempo_id,
+    provincia_id,
+    porcentaje_envios,
+    total_envios)
 SELECT
+    T.id as tiempo,
+    L.provincia_nombre as provincia,
+    [Dr0p].calcular_porcentaje(
+            (SELECT count(EV2.id)
+             FROM Dr0p.Ventas V2
+                      INNER JOIN Dr0p.Envios_Ventas EV2 ON EV2.venta_codigo = V2.codigo
+             WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
+            ) , count(EV.id) ) as porcentaje,
+
+    (SELECT count(EV2.id)
+     FROM Dr0p.Ventas V2
+              INNER JOIN Dr0p.Envios_Ventas EV2 ON EV2.venta_codigo = V2.codigo
+     WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
+    ) as total_envios
+
+
+
+FROM Dr0p.Ventas V
+         INNER JOIN Dr0p.BI_Tiempos T ON  YEAR(V.fecha) = T.anio AND MONTH(V.fecha) = T.mes
+         INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V.codigo
+         INNER JOIN Dr0p.Envios_Ventas_Localidad EVL ON EVL.envio_venta_id = EV.id
+         INNER JOIN Dr0p.Localidades L ON L.id = EVL.localidad_id
+
+GROUP BY T.id, T.mes, T.anio, L.provincia_nombre
+ORDER BY T.id
+GO
 /*
 INSERT INTO [Dr0p].BI_Hechos_Compras(
     tiempo_id,
@@ -662,7 +689,10 @@ AS
 	GROUP BY T.anio, T.mes, P.nombre, porcentaje_envios
 GO
 
+
+-- TODO: ver esto
 -- Valor promedio de envío por Provincia por Medio De Envío anual.
+/*
 CREATE VIEW [Dr0p].[BI_VIEW_VALOR_PROMEDIO_ENVIO_ANUAL_PROVINCIA]
 AS
 	SELECT T.anio, P.nombre, ME.nombre, HEP.promedio_envios 
@@ -673,4 +703,35 @@ AS
 	GROUP BY T.anio, P.nombre, ME.nombre, HEP.promedio_envios
 GO
 
+*/
 
+
+
+
+/*INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (
+    tiempo_id,
+    provincia_id,
+    medio_envio_id,
+    porcentaje_envios,
+    promedio_envios,
+    total_envios)
+SELECT
+    T.id as tiempo,
+    L.provincia_nombre as provincia,
+    (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = ME.nombre) as medio_de_envio,
+    (count(DISTINCT EV.id)) as envios_provincia_por_medio_de_envio,
+    /*(	SELECT count (DISTINCT EV2.id)
+
+        FROM Dr0p.Ventas V2
+        INNER JOIN Dr0p.Envios_Ventas EV2 ON EV2.venta_codigo = V2.codigo
+        INNER JOIN Dr0p.Medios_de_envio_Localidad MEL2 ON MEL2.medio_envio_id = EV2.medio_envio_id
+        INNER JOIN Dr0p.Localidades L2 ON L2.id = MEL2.localidad_id
+        WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
+        AND L2.provincia_nombre = L.provincia_nombre
+        GROUP BY L2.provincia_nombre
+    ) as envios_provincia,*/
+    (SELECT count(EV.id)
+     FROM Dr0p.Ventas V2
+              INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V2.codigo
+     WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
+    ) as total_envios*/
