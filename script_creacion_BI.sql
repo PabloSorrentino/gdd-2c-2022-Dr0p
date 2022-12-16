@@ -761,19 +761,9 @@ que los precios siempre van en aumento.*/
 CREATE VIEW [Dr0p].[BI_AUMENTO_PROMEDIO_ANUAL_PRECIOS_PROOVEDOR]
 AS
 	SELECT 
-		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, (HPP.aumento_anual_producto)
+		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, HPP.aumento_anual_producto
 	FROM 
 		Dr0p.BI_Hechos_Proovedor_Precios HPP
 GO
 
-/*Aumento promedio de precios de cada proveedor anual. Para calcular este
-indicador se debe tomar como referencia el máximo precio por año menos
-el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
-que los precios siempre van en aumento.*/
-CREATE VIEW [Dr0p].[BI_AUMENTO_PROMEDIO_ANUAL_PRECIOS_PROOVEDOR]
-AS
-	SELECT 
-		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, (HPP.aumento_anual_producto)
-	FROM 
-		Dr0p.BI_Hechos_Proovedor_Precios HPP
-GO
+
