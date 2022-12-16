@@ -761,9 +761,9 @@ que los precios siempre van en aumento.*/
 CREATE VIEW [Dr0p].[BI_AUMENTO_PROMEDIO_ANUAL_PRECIOS_PROOVEDOR]
 AS
 	SELECT 
-		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, HPP.aumento_anual_producto
+		HPP.anio, PR.cuit, PR.razon_social, P.codigo, HPP.aumento_anual_producto
 	FROM 
 		Dr0p.BI_Hechos_Proovedor_Precios HPP
+	    INNER JOIN Dr0p.BI_Proveedores PR ON PR.cuit = HPP.proveedor_cuit
+		INNER JOIN Dr0p.BI_Productos P ON P.codigo = HPP.producto_codigo
 GO
-
-
