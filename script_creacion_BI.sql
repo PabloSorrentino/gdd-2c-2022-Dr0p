@@ -285,10 +285,10 @@ CREATE TABLE [Dr0p].BI_Hechos_Compras_Reposicion(
 -- BI Hechos Proovedor Precios
 
 CREATE TABLE [Dr0p].BI_Hechos_Proovedor_Precios(
-	tiempo_id DECIMAL(18,0) FOREIGN KEY REFERENCES Dr0p.BI_Tiempos(id),
     proveedor_cuit NVARCHAR(255) FOREIGN KEY REFERENCES Dr0p.BI_Proveedores(cuit),
 	producto_codigo  NVARCHAR(50) FOREIGN KEY REFERENCES Dr0p.BI_Productos(codigo),
-	aumento_anual_producto DECIMAL(18,2) NOT NULL
+	aumento_anual_producto DECIMAL(18,2) NOT NULL,
+	anio DECIMAL(4,0) NOT NULL
 )
 
 
@@ -616,8 +616,8 @@ GO
 
 --BI Hechos Proovedor Precios
 INSERT INTO [Dr0p].BI_Hechos_Proovedor_Precios(
-	tiempo_id,
-    proveedor_cuit ,
+	anio,
+	proveedor_cuit ,
 	producto_codigo,
 	aumento_anual_producto
 ) 
@@ -631,6 +631,8 @@ FROM
 	INNER JOIN Dr0p.BI_Tiempos T ON  YEAR(C.fecha) = T.anio AND MONTH(C.fecha) = T.mes
 	GROUP BY T.anio, PO.cuit, CP.producto_codigo
 GO
+
+
 
 --------------------- CREACION DE VISTAS ---------------------
 
@@ -752,31 +754,26 @@ FROM  [Dr0p].BI_Hechos_Compras_Reposicion HCR
 ORDER BY cantidad_reposicion DESC
 GO
 
+/*Aumento promedio de precios de cada proveedor anual. Para calcular este
+indicador se debe tomar como referencia el máximo precio por año menos
+el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
+que los precios siempre van en aumento.*/
+CREATE VIEW [Dr0p].[BI_AUMENTO_PROMEDIO_ANUAL_PRECIOS_PROOVEDOR]
+AS
+	SELECT 
+		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, (HPP.aumento_anual_producto)
+	FROM 
+		Dr0p.BI_Hechos_Proovedor_Precios HPP
+GO
 
-/*INSERT INTO Dr0p.BI_Hechos_Envios_Provincias (
-    tiempo_id,
-    provincia_id,
-    medio_envio_id,
-    porcentaje_envios,
-    promedio_envios,
-    total_envios)
-SELECT
-    T.id as tiempo,
-    L.provincia_nombre as provincia,
-    (SELECT id FROM Dr0p.BI_Medios_De_Envio BIME WHERE BIME.nombre = ME.nombre) as medio_de_envio,
-    (count(DISTINCT EV.id)) as envios_provincia_por_medio_de_envio,
-    /*(	SELECT count (DISTINCT EV2.id)
-
-        FROM Dr0p.Ventas V2
-        INNER JOIN Dr0p.Envios_Ventas EV2 ON EV2.venta_codigo = V2.codigo
-        INNER JOIN Dr0p.Medios_de_envio_Localidad MEL2 ON MEL2.medio_envio_id = EV2.medio_envio_id
-        INNER JOIN Dr0p.Localidades L2 ON L2.id = MEL2.localidad_id
-        WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
-        AND L2.provincia_nombre = L.provincia_nombre
-        GROUP BY L2.provincia_nombre
-    ) as envios_provincia,*/
-    (SELECT count(EV.id)
-     FROM Dr0p.Ventas V2
-              INNER JOIN Dr0p.Envios_Ventas EV ON EV.venta_codigo = V2.codigo
-     WHERE YEAR(V2.fecha) = T.anio AND MONTH(V2.fecha) = T.mes
-    ) as total_envios*/
+/*Aumento promedio de precios de cada proveedor anual. Para calcular este
+indicador se debe tomar como referencia el máximo precio por año menos
+el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
+que los precios siempre van en aumento.*/
+CREATE VIEW [Dr0p].[BI_AUMENTO_PROMEDIO_ANUAL_PRECIOS_PROOVEDOR]
+AS
+	SELECT 
+		HPP.anio, HPP.proveedor_cuit, HPP.producto_codigo, (HPP.aumento_anual_producto)
+	FROM 
+		Dr0p.BI_Hechos_Proovedor_Precios HPP
+GO
